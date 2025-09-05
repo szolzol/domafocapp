@@ -196,7 +196,7 @@ function App() {
     <div className="min-h-screen p-4 sm:p-6 bg-slate-100">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-16 h-16 flex items-center justify-center">
             <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
           </div>
           <div>
