@@ -218,7 +218,7 @@ function App() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView('stats')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-yellow-100" onClick={() => setCurrentView('stats')}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="w-5 h-5" />
@@ -230,7 +230,7 @@ function App() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowImporter(true)}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-neutral-200" onClick={() => setShowImporter(true)}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Upload className="w-5 h-5" />
