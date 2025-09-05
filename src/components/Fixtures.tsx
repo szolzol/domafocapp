@@ -138,14 +138,6 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                           <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
                           <span className="font-medium truncate max-w-[120px] sm:max-w-none">{match.team2.name}</span>
                         </div>
-                        
-                        {match.status === 'completed' && (
-                          <div className="flex-shrink-0 flex items-center">
-                            <div className="text-lg sm:text-2xl font-bold bg-accent/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
-                              {match.score1} - {match.score2}
-                            </div>
-                          </div>
-                        )}
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -172,53 +164,62 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                       </div>
                     </div>
                     
-                    <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto">
-                      {match.status === 'pending' && (
-                        <Button 
-                          size="sm"
-                          onClick={() => onStartMatch(match)}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Start
-                        </Button>
-                      )}
-                      
-                      {match.status === 'live' && (
-                        <Button 
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onStartMatch(match)}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Live
-                        </Button>
-                      )}
-                      
+                    <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                       {match.status === 'completed' && (
-                        <>
-                          {onEditMatch && (
-                            <Button 
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onEditMatch(match)}
-                              className="flex-1 sm:flex-none"
-                            >
-                              Edit
-                            </Button>
-                          )}
+                        <div className="text-lg sm:text-2xl font-bold bg-accent/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
+                          {match.score1} - {match.score2}
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2 flex-1 sm:flex-none">
+                        {match.status === 'pending' && (
+                          <Button 
+                            size="sm"
+                            onClick={() => onStartMatch(match)}
+                            className="flex-1 sm:flex-none"
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            Start
+                          </Button>
+                        )}
+                        
+                        {match.status === 'live' && (
                           <Button 
                             size="sm"
                             variant="outline"
-                            onClick={() => rematchGame(match)}
-                            className="text-accent hover:text-accent hover:bg-accent/10 flex-1 sm:flex-none"
+                            onClick={() => onStartMatch(match)}
+                            className="flex-1 sm:flex-none"
                           >
-                            <ArrowCounterClockwise className="w-4 h-4 mr-1" />
-                            Rematch
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Live
                           </Button>
-                        </>
-                      )}
+                        )}
+                        
+                        {match.status === 'completed' && (
+                          <>
+                            {onEditMatch && (
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onEditMatch(match)}
+                                className="flex-1 sm:flex-none"
+                              >
+                                Edit
+                              </Button>
+                            )}
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => rematchGame(match)}
+                              className="text-accent hover:text-accent hover:bg-accent/10 flex-1 sm:flex-none"
+                            >
+                              <ArrowCounterClockwise className="w-4 h-4 mr-1" />
+                              Rematch
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                     </div>
                   </div>
                 </div>
