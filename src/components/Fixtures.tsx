@@ -220,7 +220,6 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                         )}
                       </div>
                     </div>
-                    </div>
                   </div>
                 </div>
               ))}
