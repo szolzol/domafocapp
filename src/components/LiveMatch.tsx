@@ -86,9 +86,9 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     const updatedMatch = { ...match, status: 'live' as const }
     onUpdateMatch(updatedMatch)
     
-    // Enable audio context on user interaction and play start sound
+    // Play whistle sound when starting the match
     if (soundEnabled) {
-      // Sound will be played when first goal is scored
+      soundService.playMatchEndSound()
     }
     
     toast.success('Match started! ⚽', {
@@ -126,6 +126,12 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     
     if (isHalfTime) {
       setIsHalfTime(false)
+      
+      // Play whistle sound when starting second half
+      if (soundEnabled) {
+        soundService.playMatchEndSound()
+      }
+      
       toast.success('Second Half Started!', {
         description: 'Timer running for second half',
         duration: 3000,
@@ -135,10 +141,6 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
         description: 'Timer running',
         duration: 2000,
       })
-    }
-    
-    if (soundEnabled) {
-      // Sound for resume action
     }
   }
 
