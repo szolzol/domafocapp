@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Play, Eye, Edit } from "@phosphor-icons/react"
+import { Play, Eye, ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Tournament, Match, Team } from '../App'
 
 interface FixturesProps {
@@ -12,6 +12,27 @@ interface FixturesProps {
 }
 
 function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }: FixturesProps) {
+  const rematchGame = (match: Match) => {
+    const resetMatch: Match = {
+      ...match,
+      status: 'pending',
+      score1: 0,
+      score2: 0,
+      duration: 0,
+      goals: [],
+      comments: ''
+    }
+    
+    const updatedTournament = {
+      ...tournament,
+      fixtures: tournament.fixtures.map(m => 
+        m.id === match.id ? resetMatch : m
+      )
+    }
+    
+    onUpdateTournament(updatedTournament)
+  }
+
   const calculateLeagueTable = () => {
     const table = tournament.teams.map(team => ({
       ...team,
@@ -98,16 +119,18 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 mb-2">
+                        <div className="flex items-center gap-4 flex-1">
                           <span className="font-medium">{match.team1.name}</span>
                           <span className="text-muted-foreground">vs</span>
                           <span className="font-medium">{match.team2.name}</span>
                         </div>
                         
                         {match.status === 'completed' && (
-                          <div className="text-lg font-bold">
-                            {match.score1} - {match.score2}
+                          <div className="flex-shrink-0 text-center mx-6">
+                            <div className="text-2xl font-bold bg-accent/10 px-4 py-2 rounded-lg">
+                              {match.score1} - {match.score2}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -158,15 +181,27 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                         </Button>
                       )}
                       
-                      {match.status === 'completed' && onEditMatch && (
-                        <Button 
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onEditMatch(match)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit
-                        </Button>
+                      {match.status === 'completed' && (
+                        <>
+                          {onEditMatch && (
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onEditMatch(match)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => rematchGame(match)}
+                            className="text-accent hover:text-accent hover:bg-accent/10"
+                          >
+                            <ArrowCounterClockwise className="w-4 h-4 mr-1" />
+                            Rematch
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
