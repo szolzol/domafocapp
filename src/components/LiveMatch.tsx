@@ -120,6 +120,8 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
       duration: 6000,
     })
   }
+
+  const resumeMatch = () => {
     setIsRunning(true)
     
     if (isHalfTime) {
