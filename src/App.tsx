@@ -193,7 +193,7 @@ function App() {
   }
 
   const renderHomeScreen = () => (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6 bg-slate-100">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
