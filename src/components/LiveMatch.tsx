@@ -26,7 +26,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
   const [comments, setComments] = useState(match.comments || '')
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [isHalfTime, setIsHalfTime] = useState(false)
-  const [halfTimeStarted, setHalfTimeStarted] = useState(false)
+  const [firstHalfCompleted, setFirstHalfCompleted] = useState(match.duration >= 2700)
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -49,10 +49,15 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
           }
           
           // Check for half-time break (at 45 minutes = 2700 seconds)
-          if (tournament.hasHalfTime && newTime === 2700 && !halfTimeStarted) {
+          if (tournament.hasHalfTime && newTime === 2700 && !firstHalfCompleted) {
             setIsHalfTime(true)
-            setHalfTimeStarted(true)
+            setFirstHalfCompleted(true)
             setIsRunning(false)
+            
+            // Play half-time whistle sound
+            if (soundEnabled) {
+              soundService.playMatchEndSound() // Use same whistle sound for half-time
+            }
             
             toast.info('⏰ Half Time!', {
               description: 'Take a break. Resume when ready for second half.',
@@ -68,7 +73,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, soundEnabled, tournament.hasHalfTime, halfTimeStarted])
+  }, [isRunning, soundEnabled, tournament.hasHalfTime, firstHalfCompleted])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -100,7 +105,21 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     })
   }
 
-  const resumeMatch = () => {
+  const endFirstHalf = () => {
+    setIsRunning(false)
+    setIsHalfTime(true)
+    setFirstHalfCompleted(true)
+    
+    // Play half-time whistle sound
+    if (soundEnabled) {
+      soundService.playMatchEndSound()
+    }
+    
+    toast.info('⏰ First Half Ended!', {
+      description: 'Take a break. Resume when ready for second half.',
+      duration: 6000,
+    })
+  }
     setIsRunning(true)
     
     if (isHalfTime) {
@@ -285,7 +304,16 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 </Button>
               )}
               
-              {time > 0 && (
+              {/* Show End First Half button during first half with half-time enabled */}
+              {tournament.hasHalfTime && time > 0 && time < 2700 && !firstHalfCompleted && (
+                <Button onClick={endFirstHalf} variant="secondary" size="lg">
+                  <Square className="w-5 h-5 mr-2" />
+                  End First Half
+                </Button>
+              )}
+              
+              {/* Show End Match button after first half is completed or if no half-time */}
+              {(time > 0 && (!tournament.hasHalfTime || firstHalfCompleted)) && (
                 <Button onClick={endMatch} variant="destructive" size="lg">
                   <Square className="w-5 h-5 mr-2" />
                   End Match

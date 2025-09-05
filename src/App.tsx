@@ -3,8 +3,10 @@ import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Calendar, Users, Trophy, BarChart3 } from "@phosphor-icons/react"
+import { Plus, Calendar, Users, Trophy, BarChart3, Trash2 } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
+import { toast } from 'sonner'
+import soccerBallIcon from '@/assets/images/soccer_ball.png'
 import TournamentSetup from '@/components/TournamentSetup'
 import Fixtures from '@/components/Fixtures'
 import LiveMatch from '@/components/LiveMatch'
@@ -122,7 +124,19 @@ function App() {
     setCurrentView('edit')
   }
 
-  const updateMatch = (updatedMatch: Match) => {
+  const deleteTournament = (tournamentId: string) => {
+    setTournaments(currentTournaments => 
+      currentTournaments.filter(t => t.id !== tournamentId)
+    )
+    
+    // If we're viewing the deleted tournament, go back to home
+    if (selectedTournament?.id === tournamentId) {
+      setSelectedTournament(null)
+      setCurrentView('home')
+    }
+    
+    toast.success('Tournament deleted successfully')
+  }
     if (!selectedTournament) return
     
     const updatedTournament = {
@@ -140,8 +154,8 @@ function App() {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full soccer-ball"></div>
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <img src={soccerBallIcon} alt="Soccer Ball" className="w-8 h-8" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
@@ -187,19 +201,40 @@ function App() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {tournaments.map(tournament => (
-                <Card key={tournament.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => selectTournament(tournament)}>
+                <Card key={tournament.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{tournament.name || 'Unnamed Tournament'}</CardTitle>
-                      <Badge variant={
-                        tournament.status === 'setup' ? 'secondary' :
-                        tournament.status === 'active' ? 'default' : 'outline'
-                      }>
-                        {tournament.status}
-                      </Badge>
+                      <CardTitle 
+                        className="text-lg cursor-pointer flex-1"
+                        onClick={() => selectTournament(tournament)}
+                      >
+                        {tournament.name || 'Unnamed Tournament'}
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={
+                          tournament.status === 'setup' ? 'secondary' :
+                          tournament.status === 'active' ? 'default' : 'outline'
+                        }>
+                          {tournament.status}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteTournament(tournament.id)
+                          }}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent 
+                    className="cursor-pointer"
+                    onClick={() => selectTournament(tournament)}
+                  >
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
