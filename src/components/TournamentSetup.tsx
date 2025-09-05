@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash, Users, Shuffle } from "@phosphor-icons/react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus, Trash, Users, Shuffle, Edit2 } from "@phosphor-icons/react"
 import { Tournament, Team, Player } from '../App'
 
 interface TournamentSetupProps {
@@ -16,16 +18,19 @@ interface TournamentSetupProps {
 function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProps) {
   const [name, setName] = useState(tournament.name)
   const [date, setDate] = useState(tournament.date)
-  const [players, setPlayers] = useState<Array<{name: string, alias: string}>>([])
+  const [players, setPlayers] = useState<Array<{name: string, hat: 'first' | 'second'}>>([])
   const [teams, setTeams] = useState<Team[]>(tournament.teams)
   const [newPlayerName, setNewPlayerName] = useState('')
-  const [newPlayerAlias, setNewPlayerAlias] = useState('')
+  const [newPlayerHat, setNewPlayerHat] = useState<'first' | 'second'>('first')
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null)
+  const [editTeamName, setEditTeamName] = useState('')
+  const [editPlayerAliases, setEditPlayerAliases] = useState<{[playerId: string]: string}>({})
 
   const addPlayer = () => {
-    if (newPlayerName.trim() && newPlayerAlias.trim()) {
-      setPlayers(current => [...current, { name: newPlayerName.trim(), alias: newPlayerAlias.trim() }])
+    if (newPlayerName.trim()) {
+      setPlayers(current => [...current, { name: newPlayerName.trim(), hat: newPlayerHat }])
       setNewPlayerName('')
-      setNewPlayerAlias('')
+      setNewPlayerHat('first')
     }
   }
 
@@ -36,29 +41,80 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
   const generateTeams = () => {
     if (players.length < 2) return
     
-    const shuffledPlayers = [...players].sort(() => Math.random() - 0.5)
-    const newTeams: Team[] = []
+    // Separate players by hat (skill level)
+    const firstHat = players.filter(p => p.hat === 'first')
+    const secondHat = players.filter(p => p.hat === 'second')
     
-    for (let i = 0; i < shuffledPlayers.length; i += 2) {
-      if (i + 1 < shuffledPlayers.length) {
+    // Shuffle each group
+    const shuffledFirst = [...firstHat].sort(() => Math.random() - 0.5)
+    const shuffledSecond = [...secondHat].sort(() => Math.random() - 0.5)
+    
+    const newTeams: Team[] = []
+    const minTeams = Math.min(shuffledFirst.length, shuffledSecond.length)
+    
+    // Create balanced teams (1 first hat + 1 second hat)
+    for (let i = 0; i < minTeams; i++) {
+      const teamPlayers: Player[] = [
+        {
+          id: `${Date.now()}_${i}_0`,
+          name: shuffledFirst[i].name,
+          alias: shuffledFirst[i].name, // Default alias to name
+          goals: 0,
+          hat: 'first'
+        },
+        {
+          id: `${Date.now()}_${i}_1`,
+          name: shuffledSecond[i].name,
+          alias: shuffledSecond[i].name, // Default alias to name
+          goals: 0,
+          hat: 'second'
+        }
+      ]
+      
+      newTeams.push({
+        id: `team_${Date.now()}_${i}`,
+        name: `Team ${i + 1}`,
+        players: teamPlayers,
+        stats: {
+          played: 0,
+          won: 0,
+          drawn: 0,
+          lost: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          points: 0
+        }
+      })
+    }
+    
+    // Handle remaining players if uneven numbers
+    const remainingFirst = shuffledFirst.slice(minTeams)
+    const remainingSecond = shuffledSecond.slice(minTeams)
+    const allRemaining = [...remainingFirst, ...remainingSecond]
+    
+    // Pair remaining players
+    for (let i = 0; i < allRemaining.length; i += 2) {
+      if (i + 1 < allRemaining.length) {
         const teamPlayers: Player[] = [
           {
-            id: Date.now().toString() + i,
-            name: shuffledPlayers[i].name,
-            alias: shuffledPlayers[i].alias,
-            goals: 0
+            id: `${Date.now()}_extra_${i}_0`,
+            name: allRemaining[i].name,
+            alias: allRemaining[i].name,
+            goals: 0,
+            hat: allRemaining[i].hat
           },
           {
-            id: Date.now().toString() + i + 1,
-            name: shuffledPlayers[i + 1].name,
-            alias: shuffledPlayers[i + 1].alias,
-            goals: 0
+            id: `${Date.now()}_extra_${i}_1`,
+            name: allRemaining[i + 1].name,
+            alias: allRemaining[i + 1].name,
+            goals: 0,
+            hat: allRemaining[i + 1].hat
           }
         ]
         
         newTeams.push({
-          id: Date.now().toString() + i,
-          name: `Team ${Math.floor(i / 2) + 1}`,
+          id: `team_extra_${Date.now()}_${i}`,
+          name: `Team ${newTeams.length + 1}`,
           players: teamPlayers,
           stats: {
             played: 0,
@@ -74,6 +130,39 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
     }
     
     setTeams(newTeams)
+  }
+
+  const openTeamEditor = (team: Team) => {
+    setEditingTeam(team)
+    setEditTeamName(team.name)
+    const aliases: {[playerId: string]: string} = {}
+    team.players.forEach(player => {
+      aliases[player.id] = player.alias
+    })
+    setEditPlayerAliases(aliases)
+  }
+
+  const saveTeamEdits = () => {
+    if (!editingTeam) return
+    
+    const updatedTeams = teams.map(team => {
+      if (team.id === editingTeam.id) {
+        return {
+          ...team,
+          name: editTeamName.trim() || team.name,
+          players: team.players.map(player => ({
+            ...player,
+            alias: editPlayerAliases[player.id] || player.alias
+          }))
+        }
+      }
+      return team
+    })
+    
+    setTeams(updatedTeams)
+    setEditingTeam(null)
+    setEditTeamName('')
+    setEditPlayerAliases({})
   }
 
   const generateFixtures = () => {
@@ -118,6 +207,8 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
   }
 
   const canComplete = name.trim() && date && teams.length >= 2
+  const firstHatCount = players.filter(p => p.hat === 'first').length
+  const secondHatCount = players.filter(p => p.hat === 'second').length
 
   return (
     <div className="space-y-6">
@@ -163,21 +254,23 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 value={newPlayerName}
                 onChange={(e) => setNewPlayerName(e.target.value)}
                 placeholder="Full name"
-                onKeyPress={(e) => e.key === 'Enter' && newPlayerAlias && addPlayer()}
+                onKeyPress={(e) => e.key === 'Enter' && newPlayerName.trim() && addPlayer()}
               />
             </div>
             <div>
-              <Label htmlFor="player-alias">Alias</Label>
-              <Input
-                id="player-alias"
-                value={newPlayerAlias}
-                onChange={(e) => setNewPlayerAlias(e.target.value)}
-                placeholder="Nickname"
-                onKeyPress={(e) => e.key === 'Enter' && newPlayerName && addPlayer()}
-              />
+              <Label htmlFor="player-hat">Skill Level</Label>
+              <Select value={newPlayerHat} onValueChange={(value: 'first' | 'second') => setNewPlayerHat(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select skill level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="first">First Hat (Strong)</SelectItem>
+                  <SelectItem value="second">Second Hat (Weak)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-end">
-              <Button onClick={addPlayer} disabled={!newPlayerName.trim() || !newPlayerAlias.trim()}>
+              <Button onClick={addPlayer} disabled={!newPlayerName.trim()}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Player
               </Button>
@@ -186,13 +279,21 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
 
           {players.length > 0 && (
             <div>
-              <h4 className="font-medium mb-3">Registered Players ({players.length})</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Registered Players ({players.length})</h4>
+                <div className="flex gap-2">
+                  <Badge variant="outline">First Hat: {firstHatCount}</Badge>
+                  <Badge variant="outline">Second Hat: {secondHatCount}</Badge>
+                </div>
+              </div>
               <div className="grid gap-2">
                 {players.map((player, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div>
+                    <div className="flex items-center gap-3">
                       <span className="font-medium">{player.name}</span>
-                      <span className="text-muted-foreground ml-2">({player.alias})</span>
+                      <Badge variant={player.hat === 'first' ? 'default' : 'secondary'}>
+                        {player.hat === 'first' ? 'Strong' : 'Weak'}
+                      </Badge>
                     </div>
                     <Button
                       variant="ghost"
@@ -212,7 +313,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                   variant="outline"
                 >
                   <Shuffle className="w-4 h-4 mr-2" />
-                  Generate Teams
+                  Generate Balanced Teams
                 </Button>
                 <span className="text-sm text-muted-foreground flex items-center">
                   {players.length % 2 === 1 && players.length > 0 && (
@@ -220,6 +321,14 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                   )}
                 </span>
               </div>
+              
+              {Math.abs(firstHatCount - secondHatCount) > 1 && players.length > 2 && (
+                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    <strong>Note:</strong> Uneven skill distribution. Teams will be balanced as much as possible.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -234,12 +343,75 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {teams.map((team, index) => (
                 <div key={team.id} className="p-4 bg-muted rounded-lg">
-                  <h4 className="font-semibold mb-2">{team.name}</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold">{team.name}</h4>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => openTeamEditor(team)}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Team</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="team-name">Team Name</Label>
+                            <Input
+                              id="team-name"
+                              value={editTeamName}
+                              onChange={(e) => setEditTeamName(e.target.value)}
+                              placeholder="Enter team name"
+                            />
+                          </div>
+                          <div>
+                            <Label>Player Aliases</Label>
+                            <div className="space-y-2 mt-2">
+                              {editingTeam?.players.map(player => (
+                                <div key={player.id}>
+                                  <Label className="text-sm text-muted-foreground">{player.name}</Label>
+                                  <Input
+                                    value={editPlayerAliases[player.id] || ''}
+                                    onChange={(e) => setEditPlayerAliases(prev => ({
+                                      ...prev,
+                                      [player.id]: e.target.value
+                                    }))}
+                                    placeholder="Enter alias"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <DialogTrigger asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogTrigger>
+                            <DialogTrigger asChild>
+                              <Button onClick={saveTeamEdits}>Save Changes</Button>
+                            </DialogTrigger>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                   <div className="space-y-1">
                     {team.players.map(player => (
-                      <div key={player.id} className="text-sm">
-                        <span className="font-medium">{player.name}</span>
-                        <span className="text-muted-foreground ml-1">({player.alias})</span>
+                      <div key={player.id} className="flex items-center justify-between text-sm">
+                        <div>
+                          <span className="font-medium">{player.name}</span>
+                          <span className="text-muted-foreground ml-1">({player.alias})</span>
+                        </div>
+                        <Badge 
+                          variant={player.hat === 'first' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {player.hat === 'first' ? 'S' : 'W'}
+                        </Badge>
                       </div>
                     ))}
                   </div>

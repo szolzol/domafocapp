@@ -38,6 +38,7 @@ export interface Player {
   name: string
   alias: string
   goals: number
+  hat: 'first' | 'second' // first = strong, second = weak
 }
 
 export interface Match {
