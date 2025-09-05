@@ -122,6 +122,10 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                         
                         <Badge variant="outline">Round {match.round}</Badge>
                         
+                        {tournament.hasHalfTime && (
+                          <Badge variant="outline" className="text-xs">With Half-Time</Badge>
+                        )}
+                        
                         {match.status === 'completed' && (
                           <span>{Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, '0')} duration</span>
                         )}
@@ -185,8 +189,8 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="grid grid-cols-8 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
-                  <span className="col-span-3">Team</span>
+                <div className="grid grid-cols-9 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
+                  <span className="col-span-4">Team</span>
                   <span className="text-center">P</span>
                   <span className="text-center">W</span>
                   <span className="text-center">D</span>
@@ -195,12 +199,12 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                 </div>
                 
                 {leagueTable.map((team, index) => (
-                  <div key={team.id} className="grid grid-cols-8 gap-3 py-2 text-sm">
-                    <div className="col-span-3 flex items-center gap-2">
+                  <div key={team.id} className="grid grid-cols-9 gap-3 py-2 text-sm">
+                    <div className="col-span-4 flex items-center gap-2">
                       <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
                         {index + 1}.
                       </span>
-                      <span className="font-medium truncate" title={team.name}>{team.name}</span>
+                      <span className="font-medium" title={team.name}>{team.name}</span>
                     </div>
                     <span className="text-center">{team.stats.played}</span>
                     <span className="text-center">{team.stats.won}</span>

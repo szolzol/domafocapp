@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash2, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react"
 import { toast } from 'sonner'
 import { Tournament, Match, Goal, Player } from '../App'
-import { soundEffects } from '@/lib/soundEffects'
+import { soundService } from '@/lib/soundService'
 
 interface LiveMatchProps {
   match: Match
@@ -25,6 +25,8 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
   const [goals, setGoals] = useState<Goal[]>(match.goals)
   const [comments, setComments] = useState(match.comments || '')
   const [soundEnabled, setSoundEnabled] = useState(true)
+  const [isHalfTime, setIsHalfTime] = useState(false)
+  const [halfTimeStarted, setHalfTimeStarted] = useState(false)
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -42,8 +44,20 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
             })
             
             if (soundEnabled) {
-              soundEffects.playNotificationSound()
+              // Simple notification sound can be a brief sound
             }
+          }
+          
+          // Check for half-time break (at 45 minutes = 2700 seconds)
+          if (tournament.hasHalfTime && newTime === 2700 && !halfTimeStarted) {
+            setIsHalfTime(true)
+            setHalfTimeStarted(true)
+            setIsRunning(false)
+            
+            toast.info('⏰ Half Time!', {
+              description: 'Take a break. Resume when ready for second half.',
+              duration: 6000,
+            })
           }
           
           return newTime
@@ -54,7 +68,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, soundEnabled])
+  }, [isRunning, soundEnabled, tournament.hasHalfTime, halfTimeStarted])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -69,9 +83,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     
     // Enable audio context on user interaction and play start sound
     if (soundEnabled) {
-      soundEffects.enableAudio().then(() => {
-        soundEffects.playMatchStartSound()
-      })
+      // Sound will be played when first goal is scored
     }
     
     toast.success('Match started! ⚽', {
@@ -91,14 +103,22 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
   const resumeMatch = () => {
     setIsRunning(true)
     
-    if (soundEnabled) {
-      soundEffects.playNotificationSound()
+    if (isHalfTime) {
+      setIsHalfTime(false)
+      toast.success('Second Half Started!', {
+        description: 'Timer running for second half',
+        duration: 3000,
+      })
+    } else {
+      toast.success('Match resumed', {
+        description: 'Timer running',
+        duration: 2000,
+      })
     }
     
-    toast.success('Match resumed', {
-      description: 'Timer running',
-      duration: 2000,
-    })
+    if (soundEnabled) {
+      // Sound for resume action
+    }
   }
 
   const addGoal = (teamId: string, playerId: string) => {
@@ -129,7 +149,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     
     // Play goal sound and show notification
     if (soundEnabled) {
-      soundEffects.playGoalSound()
+      soundService.playGoalSound()
     }
     
     toast.success('⚽ GOAL!', {
@@ -175,7 +195,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     
     // Play match end sound and show final score notification
     if (soundEnabled) {
-      soundEffects.playMatchEndSound()
+      soundService.playMatchEndSound()
     }
     
     const winnerText = score1 > score2 ? `${match.team1.name} wins!` :
@@ -228,6 +248,21 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
         <CardContent>
           <div className="text-center mb-6">
             <div className="text-6xl font-bold mb-2">{formatTime(time)}</div>
+            {isHalfTime && (
+              <div className="text-lg font-semibold text-amber-600 mb-2">
+                ⏰ HALF TIME
+              </div>
+            )}
+            {tournament.hasHalfTime && time >= 2700 && !isHalfTime && (
+              <div className="text-sm text-muted-foreground">
+                Second Half
+              </div>
+            )}
+            {tournament.hasHalfTime && time < 2700 && (
+              <div className="text-sm text-muted-foreground">
+                First Half
+              </div>
+            )}
             <div className="flex gap-4 justify-center">
               {match.status === 'pending' && !isRunning && (
                 <Button onClick={startMatch} size="lg">
@@ -246,7 +281,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
               {!isRunning && match.status === 'live' && (
                 <Button onClick={resumeMatch} size="lg">
                   <Play className="w-5 h-5 mr-2" />
-                  Resume
+                  {isHalfTime ? 'Start Second Half' : 'Resume'}
                 </Button>
               )}
               

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash, Users, Shuffle, Edit2 } from "@phosphor-icons/react"
 import { Tournament, Team, Player } from '../App'
 
@@ -20,6 +21,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
   const [date, setDate] = useState(tournament.date)
   const [rounds, setRounds] = useState(tournament.rounds || 1)
   const [teamSize, setTeamSize] = useState(tournament.teamSize || 2)
+  const [hasHalfTime, setHasHalfTime] = useState(tournament.hasHalfTime || false)
   const [players, setPlayers] = useState<Array<{name: string, hat: 'first' | 'second'}>>([])
   const [teams, setTeams] = useState<Team[]>(tournament.teams)
   const [newPlayerName, setNewPlayerName] = useState('')
@@ -166,6 +168,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
       date: date,
       rounds: rounds,
       teamSize: teamSize,
+      hasHalfTime: hasHalfTime,
       teams,
       fixtures,
       status: 'active'
@@ -231,6 +234,16 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 <SelectItem value="6">6v6 (6 players per team)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="half-time" 
+              checked={hasHalfTime} 
+              onCheckedChange={(checked) => setHasHalfTime(checked as boolean)} 
+            />
+            <Label htmlFor="half-time" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Include half-time breaks in matches
+            </Label>
           </div>
         </CardContent>
       </Card>
@@ -429,6 +442,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             <div className="mt-4 p-4 bg-primary/10 rounded-lg">
               <p className="text-sm text-primary">
                 <strong>Tournament Format:</strong> {teamSize}v{teamSize} • {rounds} round{rounds > 1 ? 's' : ''} • {teams.length * (teams.length - 1) / 2 * rounds} matches total
+                {hasHalfTime && <span className="ml-2">• With half-time breaks</span>}
               </p>
             </div>
           </CardContent>
@@ -444,6 +458,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             date,
             rounds,
             teamSize,
+            hasHalfTime,
             teams
           })}
         >

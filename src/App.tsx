@@ -20,6 +20,7 @@ export interface Tournament {
   fixtures: Match[]
   rounds: number
   teamSize: number // 2v2, 3v3, 4v4, 5v5, 6v6
+  hasHalfTime: boolean // Whether matches have half-time breaks
 }
 
 export interface Team {
@@ -81,7 +82,8 @@ function App() {
       teams: [],
       fixtures: [],
       rounds: 1,
-      teamSize: 2 // Default to 2v2
+      teamSize: 2, // Default to 2v2
+      hasHalfTime: false // Default to no half-time
     }
     setSelectedTournament(newTournament)
     setCurrentView('setup')
