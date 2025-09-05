@@ -241,8 +241,8 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
             <CardContent>
               <div className="overflow-x-auto">
                 <div className="min-w-[400px] space-y-2">
-                  <div className="grid grid-cols-9 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
-                    <span className="col-span-4">Team</span>
+                  <div className="grid grid-cols-10 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
+                    <span className="col-span-5">Team</span>
                     <span className="text-center">P</span>
                     <span className="text-center">W</span>
                     <span className="text-center">D</span>
@@ -251,8 +251,8 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                   </div>
                   
                   {leagueTable.map((team, index) => (
-                    <div key={team.id} className="grid grid-cols-9 gap-3 py-2 text-sm">
-                      <div className="col-span-4 flex items-center gap-2">
+                    <div key={team.id} className="grid grid-cols-10 gap-2 py-2 text-sm">
+                      <div className="col-span-5 flex items-center gap-2">
                         <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
                           {index + 1}.
                         </span>

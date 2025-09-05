@@ -450,7 +450,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
         </Card>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 sm:justify-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
         <Button 
           variant="outline"
           onClick={() => onSave({
@@ -462,14 +462,14 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             hasHalfTime,
             teams
           })}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto order-2 sm:order-1"
         >
           Save Draft
         </Button>
         <Button 
           onClick={handleComplete}
           disabled={!canComplete}
-          className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+          className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
         >
           Complete Setup & Generate Fixtures
         </Button>

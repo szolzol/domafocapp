@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Calendar, Users, Trophy, BarChart3, Trash } from "@phosphor-icons/react"
+import { Plus, Calendar, Users, Trophy, BarChart3, Trash2 } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'
 import soccerBallIcon from '@/assets/images/soccer_ball.png'
@@ -189,7 +189,7 @@ function App() {
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
           </div>
           <div>
@@ -261,7 +261,7 @@ function App() {
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
-                          <Trash className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -378,7 +378,7 @@ function App() {
           </div>
         </header>
 
-        <main className="max-w-6xl mx-auto p-4 sm:p-6">
+        <main className="max-w-6xl mx-auto p-4 sm:p-6 pb-8 sm:pb-6">
           {currentView === 'setup' && selectedTournament && (
             <TournamentSetup
               tournament={selectedTournament}
