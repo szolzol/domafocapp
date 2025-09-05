@@ -256,7 +256,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <Label htmlFor="player-name">Player Name</Label>
               <Input
@@ -279,8 +279,8 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button onClick={addPlayer} disabled={!newPlayerName.trim()}>
+            <div className="flex items-end sm:col-span-2 lg:col-span-1">
+              <Button onClick={addPlayer} disabled={!newPlayerName.trim()} className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Player
               </Button>
@@ -316,22 +316,23 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 ))}
               </div>
               
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-col sm:flex-row gap-2 mt-4">
                 <Button 
                   onClick={generateTeams} 
                   disabled={players.length < teamSize}
                   variant="outline"
+                  className="w-full sm:w-auto"
                 >
                   <Shuffle className="w-4 h-4 mr-2" />
                   Generate Teams ({teamSize}v{teamSize})
                 </Button>
-                <span className="text-sm text-muted-foreground flex items-center">
+                <div className="text-sm text-muted-foreground flex items-center sm:ml-2">
                   {players.length % teamSize !== 0 && players.length > 0 && (
                     <Badge variant="secondary">
                       {players.length % teamSize} player{players.length % teamSize !== 1 ? 's' : ''} will sit out
                     </Badge>
                   )}
-                </span>
+                </div>
               </div>
               
               {players.length < teamSize && players.length > 0 && (
@@ -360,7 +361,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             <CardTitle>Generated Teams ({teams.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {teams.map((team, index) => (
                 <div key={team.id} className="p-4 bg-muted rounded-lg">
                   <div className="flex items-center justify-between mb-2">
@@ -449,7 +450,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
         </Card>
       )}
 
-      <div className="flex gap-4 justify-end">
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-end">
         <Button 
           variant="outline"
           onClick={() => onSave({
@@ -461,13 +462,14 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             hasHalfTime,
             teams
           })}
+          className="w-full sm:w-auto"
         >
           Save Draft
         </Button>
         <Button 
           onClick={handleComplete}
           disabled={!canComplete}
-          className="bg-primary hover:bg-primary/90"
+          className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
         >
           Complete Setup & Generate Fixtures
         </Button>

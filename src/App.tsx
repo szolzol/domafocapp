@@ -186,11 +186,11 @@ function App() {
   }
 
   const renderHomeScreen = () => (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <img src={soccerBallIcon} alt="Soccer Ball" className="w-10 h-10 object-contain" />
+          <div className="w-16 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
@@ -198,7 +198,7 @@ function App() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={createNewTournament}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -234,7 +234,7 @@ function App() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {tournaments.map(tournament => (
                 <Card key={tournament.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
@@ -331,8 +331,8 @@ function App() {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <Button 
               variant="ghost" 
               onClick={() => {
@@ -340,16 +340,18 @@ function App() {
                 setSelectedTournament(null)
                 setSelectedMatch(null)
               }}
-              className="text-lg font-semibold"
+              className="text-lg font-semibold self-start"
             >
               ← DomaFocApp
             </Button>
             
             {selectedTournament && (
-              <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">{selectedTournament.name || 'Unnamed Tournament'}</h1>
-                <div className="text-xs text-muted-foreground">
-                  {selectedTournament.teamSize}v{selectedTournament.teamSize}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">{selectedTournament.name || 'Unnamed Tournament'}</h1>
+                  <div className="text-xs text-muted-foreground flex-shrink-0">
+                    {selectedTournament.teamSize}v{selectedTournament.teamSize}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   {selectedTournament.status !== 'setup' && (
@@ -376,7 +378,7 @@ function App() {
           </div>
         </header>
 
-        <main className="max-w-6xl mx-auto p-6">
+        <main className="max-w-6xl mx-auto p-4 sm:p-6">
           {currentView === 'setup' && selectedTournament && (
             <TournamentSetup
               tournament={selectedTournament}

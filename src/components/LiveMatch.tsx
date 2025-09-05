@@ -281,23 +281,23 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 {firstHalfCompleted ? 'Second Half' : 'First Half'}
               </div>
             )}
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-wrap gap-2 md:gap-4 justify-center">
               {match.status === 'pending' && !isRunning && (
-                <Button onClick={startMatch} size="lg">
+                <Button onClick={startMatch} size="lg" className="flex-1 sm:flex-none">
                   <Play className="w-5 h-5 mr-2" />
                   Start Match
                 </Button>
               )}
               
               {isRunning && (
-                <Button onClick={pauseMatch} variant="outline" size="lg">
+                <Button onClick={pauseMatch} variant="outline" size="lg" className="flex-1 sm:flex-none">
                   <Pause className="w-5 h-5 mr-2" />
                   Pause
                 </Button>
               )}
               
               {!isRunning && match.status === 'live' && (
-                <Button onClick={resumeMatch} size="lg">
+                <Button onClick={resumeMatch} size="lg" className="flex-1 sm:flex-none">
                   <Play className="w-5 h-5 mr-2" />
                   {isHalfTime ? 'Start Second Half' : 'Resume'}
                 </Button>
@@ -305,15 +305,16 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
               
               {/* Show End First Half button during first half with half-time enabled */}
               {tournament.hasHalfTime && time > 0 && time < 2700 && !firstHalfCompleted && (
-                <Button onClick={endFirstHalf} variant="secondary" size="lg">
+                <Button onClick={endFirstHalf} variant="secondary" size="lg" className="flex-1 sm:flex-none">
                   <Square className="w-5 h-5 mr-2" />
-                  End First Half
+                  <span className="hidden sm:inline">End First Half</span>
+                  <span className="sm:hidden">End Half</span>
                 </Button>
               )}
               
               {/* Show End Match button after first half is completed or if no half-time */}
               {(time > 0 && (!tournament.hasHalfTime || firstHalfCompleted)) && (
-                <Button onClick={endMatch} variant="destructive" size="lg">
+                <Button onClick={endMatch} variant="destructive" size="lg" className="flex-1 sm:flex-none">
                   <Square className="w-5 h-5 mr-2" />
                   End Match
                 </Button>
@@ -321,11 +322,11 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-8 items-center">
-            <Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-start">
+            <Card className="order-1 md:order-none">
               <CardHeader className="text-center pb-3">
-                <CardTitle className="text-xl">{match.team1.name}</CardTitle>
-                <div className="text-4xl font-bold text-primary">{score1}</div>
+                <CardTitle className="text-lg md:text-xl truncate">{match.team1.name}</CardTitle>
+                <div className="text-3xl md:text-4xl font-bold text-primary">{score1}</div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
@@ -336,10 +337,10 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                         size="sm"
                         onClick={() => addGoal(match.team1.id, player.id)}
                         disabled={!isRunning}
-                        className="flex-1 mr-2"
+                        className="flex-1 mr-2 text-xs md:text-sm"
                       >
-                        <Plus className="w-4 h-4 mr-1" />
-                        {player.alias}
+                        <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                        <span className="truncate">{player.alias}</span>
                       </Button>
                     </div>
                   ))}
@@ -355,18 +356,18 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                     }
                   }}
                   disabled={team1Goals.length === 0}
-                  className="w-full"
+                  className="w-full text-xs md:text-sm"
                 >
-                  <Minus className="w-4 h-4 mr-1" />
+                  <Minus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Undo Last Goal
                 </Button>
                 
                 {team1Goals.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs md:text-sm text-muted-foreground">
                     <div className="font-medium mb-1">Goals:</div>
                     {team1Goals.map(goal => (
                       <div key={goal.id} className="flex justify-between">
-                        <span>{goal.playerName}</span>
+                        <span className="truncate mr-2">{goal.playerName}</span>
                         <span>{goal.minute}'</span>
                       </div>
                     ))}
@@ -375,17 +376,17 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
               </CardContent>
             </Card>
             
-            <div className="text-center">
-              <div className="text-2xl font-bold text-muted-foreground mb-2">VS</div>
-              <div className="text-lg text-muted-foreground">
+            <div className="text-center order-3 md:order-none">
+              <div className="text-xl md:text-2xl font-bold text-muted-foreground mb-2">VS</div>
+              <div className="text-sm md:text-lg text-muted-foreground">
                 Round {match.round}
               </div>
             </div>
             
-            <Card>
+            <Card className="order-2 md:order-none">
               <CardHeader className="text-center pb-3">
-                <CardTitle className="text-xl">{match.team2.name}</CardTitle>
-                <div className="text-4xl font-bold text-primary">{score2}</div>
+                <CardTitle className="text-lg md:text-xl truncate">{match.team2.name}</CardTitle>
+                <div className="text-3xl md:text-4xl font-bold text-primary">{score2}</div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
@@ -396,10 +397,10 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                         size="sm"
                         onClick={() => addGoal(match.team2.id, player.id)}
                         disabled={!isRunning}
-                        className="flex-1 mr-2"
+                        className="flex-1 mr-2 text-xs md:text-sm"
                       >
-                        <Plus className="w-4 h-4 mr-1" />
-                        {player.alias}
+                        <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                        <span className="truncate">{player.alias}</span>
                       </Button>
                     </div>
                   ))}
@@ -415,18 +416,18 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                     }
                   }}
                   disabled={team2Goals.length === 0}
-                  className="w-full"
+                  className="w-full text-xs md:text-sm"
                 >
-                  <Minus className="w-4 h-4 mr-1" />
+                  <Minus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Undo Last Goal
                 </Button>
                 
                 {team2Goals.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs md:text-sm text-muted-foreground">
                     <div className="font-medium mb-1">Goals:</div>
                     {team2Goals.map(goal => (
                       <div key={goal.id} className="flex justify-between">
-                        <span>{goal.playerName}</span>
+                        <span className="truncate mr-2">{goal.playerName}</span>
                         <span>{goal.minute}'</span>
                       </div>
                     ))}

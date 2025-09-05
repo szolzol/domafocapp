@@ -103,14 +103,14 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <CardTitle>Edit Match</CardTitle>
             <div className="flex gap-2">
-              <Button onClick={onCancel} variant="outline" size="sm">
+              <Button onClick={onCancel} variant="outline" size="sm" className="flex-1 sm:flex-none">
                 <X className="w-4 h-4 mr-1" />
                 Cancel
               </Button>
-              <Button onClick={handleSave} size="sm">
+              <Button onClick={handleSave} size="sm" className="flex-1 sm:flex-none">
                 <Save className="w-4 h-4 mr-1" />
                 Save Changes
               </Button>
@@ -118,9 +118,9 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-6 items-center mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 items-center mb-6">
             <div className="text-center">
-              <h3 className="font-semibold text-lg mb-2">{match.team1.name}</h3>
+              <h3 className="font-semibold text-lg mb-2 truncate">{match.team1.name}</h3>
               <Input
                 type="number"
                 min="0"
@@ -136,7 +136,7 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
             </div>
             
             <div className="text-center">
-              <h3 className="font-semibold text-lg mb-2">{match.team2.name}</h3>
+              <h3 className="font-semibold text-lg mb-2 truncate">{match.team2.name}</h3>
               <Input
                 type="number"
                 min="0"
@@ -175,10 +175,10 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <CardTitle>Goals</CardTitle>
             <div className="flex gap-2">
-              <Button onClick={addGoal} size="sm" variant="outline">
+              <Button onClick={addGoal} size="sm" variant="outline" className="flex-1 sm:flex-none">
                 <Plus className="w-4 h-4 mr-1" />
                 Add Goal
               </Button>
@@ -186,6 +186,7 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
                 onClick={recalculateScore} 
                 size="sm" 
                 variant="secondary"
+                className="flex-1 sm:flex-none"
               >
                 Recalculate Score
               </Button>
@@ -200,8 +201,8 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
           ) : (
             <div className="space-y-3">
               {goals.map((goal) => (
-                <div key={goal.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="flex-1 grid grid-cols-3 gap-3">
+                <div key={goal.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <Label className="text-xs">Player</Label>
                       <Select 
@@ -251,7 +252,7 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
                     variant="ghost"
                     size="sm"
                     onClick={() => removeGoal(goal.id)}
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive self-center"
                     title="Delete goal"
                   >
                     <Trash className="w-4 h-4" />

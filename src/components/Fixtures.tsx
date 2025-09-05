@@ -107,7 +107,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="space-y-6 lg:grid lg:gap-6 lg:grid-cols-3 lg:space-y-0">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -130,25 +130,25 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                       : 'bg-card border-border hover:bg-muted/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
-                        <div className="flex items-center gap-4 flex-1">
-                          <span className="font-medium">{match.team1.name}</span>
-                          <span className="text-muted-foreground">vs</span>
-                          <span className="font-medium">{match.team2.name}</span>
+                        <div className="flex items-center gap-2 sm:gap-4 flex-1 text-sm sm:text-base">
+                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">{match.team1.name}</span>
+                          <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
+                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">{match.team2.name}</span>
                         </div>
                         
                         {match.status === 'completed' && (
-                          <div className="flex-shrink-0 text-center mx-6">
-                            <div className="text-2xl font-bold bg-accent/10 px-4 py-2 rounded-lg">
+                          <div className="flex-shrink-0 text-center">
+                            <div className="text-lg sm:text-2xl font-bold bg-accent/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
                               {match.score1} - {match.score2}
                             </div>
                           </div>
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant={
                           match.status === 'pending' ? 'secondary' :
                           match.status === 'live' ? 'default' : 'outline'
@@ -163,20 +163,21 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                         )}
                         
                         {match.status === 'completed' && (
-                          <span>{Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, '0')} duration</span>
+                          <span className="text-xs sm:text-sm">{Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, '0')} duration</span>
                         )}
                         
                         {match.comments && (
-                          <span className="italic">"{match.comments}"</span>
+                          <span className="italic text-xs sm:text-sm truncate max-w-[200px]">"{match.comments}"</span>
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto">
                       {match.status === 'pending' && (
                         <Button 
                           size="sm"
                           onClick={() => onStartMatch(match)}
+                          className="flex-1 sm:flex-none"
                         >
                           <Play className="w-4 h-4 mr-1" />
                           Start
@@ -188,6 +189,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                           size="sm"
                           variant="outline"
                           onClick={() => onStartMatch(match)}
+                          className="flex-1 sm:flex-none"
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           View Live
@@ -201,6 +203,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                               size="sm"
                               variant="outline"
                               onClick={() => onEditMatch(match)}
+                              className="flex-1 sm:flex-none"
                             >
                               Edit
                             </Button>
@@ -209,7 +212,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                             size="sm"
                             variant="outline"
                             onClick={() => rematchGame(match)}
-                            className="text-accent hover:text-accent hover:bg-accent/10"
+                            className="text-accent hover:text-accent hover:bg-accent/10 flex-1 sm:flex-none"
                           >
                             <ArrowCounterClockwise className="w-4 h-4 mr-1" />
                             Rematch
@@ -236,31 +239,33 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
               <CardTitle>League Table</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="grid grid-cols-9 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
-                  <span className="col-span-4">Team</span>
-                  <span className="text-center">P</span>
-                  <span className="text-center">W</span>
-                  <span className="text-center">D</span>
-                  <span className="text-center">L</span>
-                  <span className="text-center">Pts</span>
-                </div>
-                
-                {leagueTable.map((team, index) => (
-                  <div key={team.id} className="grid grid-cols-9 gap-3 py-2 text-sm">
-                    <div className="col-span-4 flex items-center gap-2">
-                      <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
-                        {index + 1}.
-                      </span>
-                      <span className="font-medium" title={team.name}>{team.name}</span>
-                    </div>
-                    <span className="text-center">{team.stats.played}</span>
-                    <span className="text-center">{team.stats.won}</span>
-                    <span className="text-center">{team.stats.drawn}</span>
-                    <span className="text-center">{team.stats.lost}</span>
-                    <span className="text-center font-bold">{team.stats.points}</span>
+              <div className="overflow-x-auto">
+                <div className="min-w-[400px] space-y-2">
+                  <div className="grid grid-cols-9 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
+                    <span className="col-span-4">Team</span>
+                    <span className="text-center">P</span>
+                    <span className="text-center">W</span>
+                    <span className="text-center">D</span>
+                    <span className="text-center">L</span>
+                    <span className="text-center">Pts</span>
                   </div>
-                ))}
+                  
+                  {leagueTable.map((team, index) => (
+                    <div key={team.id} className="grid grid-cols-9 gap-3 py-2 text-sm">
+                      <div className="col-span-4 flex items-center gap-2">
+                        <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
+                          {index + 1}.
+                        </span>
+                        <span className="font-medium truncate" title={team.name}>{team.name}</span>
+                      </div>
+                      <span className="text-center">{team.stats.played}</span>
+                      <span className="text-center">{team.stats.won}</span>
+                      <span className="text-center">{team.stats.drawn}</span>
+                      <span className="text-center">{team.stats.lost}</span>
+                      <span className="text-center font-bold">{team.stats.points}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               
               {leagueTable.length === 0 && (

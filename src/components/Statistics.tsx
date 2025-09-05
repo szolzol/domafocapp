@@ -273,12 +273,12 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Tournament Statistics</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Tournament Statistics</h1>
         
         <div className="flex items-center gap-4">
           <Select value={viewMode} onValueChange={(value) => setViewMode(value)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -410,7 +410,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {funFacts.earliestGoal !== null && (
                 <div className="text-center p-4 bg-accent/10 rounded-lg">
                   <Zap className="w-8 h-8 mx-auto text-accent mb-2" />
@@ -432,7 +432,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                   <Trophy className="w-8 h-8 mx-auto text-accent mb-2" />
                   <div className="text-2xl font-bold text-accent">{funFacts.highestScoringMatch.score}</div>
                   <div className="text-sm text-muted-foreground">Most Goals in Match</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.highestScoringMatch.match.team1.name} vs {funFacts.highestScoringMatch.match.team2.name}
                   </div>
                 </div>
@@ -443,7 +443,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                   <Target className="w-8 h-8 mx-auto text-accent mb-2" />
                   <div className="text-2xl font-bold text-accent">{funFacts.mostGoalsInMatch.goals}</div>
                   <div className="text-sm text-muted-foreground">Most Goals by Player</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.mostGoalsInMatch.playerName}
                   </div>
                 </div>
@@ -456,7 +456,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                     {Math.floor(funFacts.longestMatch.duration / 60)}:{(funFacts.longestMatch.duration % 60).toString().padStart(2, '0')}
                   </div>
                   <div className="text-sm text-muted-foreground">Longest Match</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.longestMatch.match.team1.name} vs {funFacts.longestMatch.match.team2.name}
                   </div>
                 </div>
@@ -469,7 +469,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                     {Math.floor(funFacts.shortestMatch.duration / 60)}:{(funFacts.shortestMatch.duration % 60).toString().padStart(2, '0')}
                   </div>
                   <div className="text-sm text-muted-foreground">Shortest Match</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.shortestMatch.match.team1.name} vs {funFacts.shortestMatch.match.team2.name}
                   </div>
                 </div>
@@ -480,7 +480,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                   <Trophy className="w-8 h-8 mx-auto text-accent mb-2" />
                   <div className="text-2xl font-bold text-accent">{funFacts.biggestWin.margin}</div>
                   <div className="text-sm text-muted-foreground">Biggest Win Margin</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.biggestWin.match.team1.name} {funFacts.biggestWin.match.score1}-{funFacts.biggestWin.match.score2} {funFacts.biggestWin.match.team2.name}
                   </div>
                 </div>
@@ -491,7 +491,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                   <Star className="w-8 h-8 mx-auto text-accent mb-2" />
                   <div className="text-2xl font-bold text-accent">{funFacts.mostGoalsPlayer.goals}</div>
                   <div className="text-sm text-muted-foreground">Top Scorer</div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {funFacts.mostGoalsPlayer.playerName}
                   </div>
                 </div>
@@ -523,7 +523,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-6 lg:grid lg:gap-6 lg:grid-cols-2 lg:space-y-0">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -545,8 +545,8 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium">{stat.player.alias}</div>
-                      <div className="text-xs text-muted-foreground">{stat.player.name}</div>
+                      <div className="font-medium truncate max-w-[150px] sm:max-w-none">{stat.player.alias}</div>
+                      <div className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">{stat.player.name}</div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -588,7 +588,7 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium">{stat.team.name}</div>
+                      <div className="font-medium truncate max-w-[150px] sm:max-w-none">{stat.team.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {stat.wins}W {stat.draws}D {stat.losses}L
                       </div>
