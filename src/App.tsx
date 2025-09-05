@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Calendar, Users, Trophy, BarChart3 } from "@phosphor-icons/react"
+import { Toaster } from 'sonner'
 import TournamentSetup from '@/components/TournamentSetup'
 import Fixtures from '@/components/Fixtures'
 import LiveMatch from '@/components/LiveMatch'
@@ -220,102 +221,115 @@ function App() {
   if (currentView === 'home') return renderHomeScreen()
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              setCurrentView('home')
-              setSelectedTournament(null)
-              setSelectedMatch(null)
-            }}
-            className="text-lg font-semibold"
-          >
-            ← DomaFocApp
-          </Button>
-          
-          {selectedTournament && (
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold">{selectedTournament.name || 'Unnamed Tournament'}</h1>
-              <div className="text-xs text-muted-foreground">
-                {selectedTournament.teamSize}v{selectedTournament.teamSize}
+    <>
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setCurrentView('home')
+                setSelectedTournament(null)
+                setSelectedMatch(null)
+              }}
+              className="text-lg font-semibold"
+            >
+              ← DomaFocApp
+            </Button>
+            
+            {selectedTournament && (
+              <div className="flex items-center gap-4">
+                <h1 className="text-xl font-semibold">{selectedTournament.name || 'Unnamed Tournament'}</h1>
+                <div className="text-xs text-muted-foreground">
+                  {selectedTournament.teamSize}v{selectedTournament.teamSize}
+                </div>
+                <div className="flex gap-2">
+                  {selectedTournament.status !== 'setup' && (
+                    <>
+                      <Button
+                        variant={currentView === 'fixtures' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setCurrentView('fixtures')}
+                      >
+                        Fixtures
+                      </Button>
+                      <Button
+                        variant={currentView === 'stats' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setCurrentView('stats')}
+                      >
+                        Stats
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex gap-2">
-                {selectedTournament.status !== 'setup' && (
-                  <>
-                    <Button
-                      variant={currentView === 'fixtures' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setCurrentView('fixtures')}
-                    >
-                      Fixtures
-                    </Button>
-                    <Button
-                      variant={currentView === 'stats' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setCurrentView('stats')}
-                    >
-                      Stats
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+            )}
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto p-6">
+          {currentView === 'setup' && selectedTournament && (
+            <TournamentSetup
+              tournament={selectedTournament}
+              onSave={saveTournament}
+              onComplete={(tournament) => {
+                saveTournament(tournament)
+                setCurrentView('fixtures')
+              }}
+            />
           )}
-        </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto p-6">
-        {currentView === 'setup' && selectedTournament && (
-          <TournamentSetup
-            tournament={selectedTournament}
-            onSave={saveTournament}
-            onComplete={(tournament) => {
-              saveTournament(tournament)
-              setCurrentView('fixtures')
-            }}
-          />
-        )}
+          {currentView === 'fixtures' && selectedTournament && (
+            <Fixtures
+              tournament={selectedTournament}
+              onStartMatch={startMatch}
+              onEditMatch={editMatch}
+              onUpdateTournament={saveTournament}
+            />
+          )}
 
-        {currentView === 'fixtures' && selectedTournament && (
-          <Fixtures
-            tournament={selectedTournament}
-            onStartMatch={startMatch}
-            onEditMatch={editMatch}
-            onUpdateTournament={saveTournament}
-          />
-        )}
+          {currentView === 'match' && selectedMatch && selectedTournament && (
+            <LiveMatch
+              match={selectedMatch}
+              tournament={selectedTournament}
+              onUpdateMatch={updateMatch}
+              onEndMatch={() => setCurrentView('fixtures')}
+            />
+          )}
 
-        {currentView === 'match' && selectedMatch && selectedTournament && (
-          <LiveMatch
-            match={selectedMatch}
-            tournament={selectedTournament}
-            onUpdateMatch={updateMatch}
-            onEndMatch={() => setCurrentView('fixtures')}
-          />
-        )}
+          {currentView === 'edit' && selectedMatch && selectedTournament && (
+            <MatchEditor
+              match={selectedMatch}
+              tournament={selectedTournament}
+              onSave={(updatedMatch) => {
+                updateMatch(updatedMatch)
+                setCurrentView('fixtures')
+              }}
+              onCancel={() => setCurrentView('fixtures')}
+            />
+          )}
 
-        {currentView === 'edit' && selectedMatch && selectedTournament && (
-          <MatchEditor
-            match={selectedMatch}
-            tournament={selectedTournament}
-            onSave={(updatedMatch) => {
-              updateMatch(updatedMatch)
-              setCurrentView('fixtures')
-            }}
-            onCancel={() => setCurrentView('fixtures')}
-          />
-        )}
-
-        {currentView === 'stats' && (
-          <Statistics
-            tournaments={tournaments}
-            selectedTournament={selectedTournament}
-          />
-        )}
-      </main>
-    </div>
+          {currentView === 'stats' && (
+            <Statistics
+              tournaments={tournaments}
+              selectedTournament={selectedTournament}
+            />
+          )}
+        </main>
+      </div>
+      
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'hsl(var(--background))',
+            color: 'hsl(var(--foreground))',
+            border: '1px solid hsl(var(--border))',
+          }
+        }}
+      />
+    </>
   )
 }
 

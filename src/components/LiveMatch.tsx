@@ -5,8 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash2 } from "@phosphor-icons/react"
+import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash2, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react"
+import { toast } from 'sonner'
 import { Tournament, Match, Goal, Player } from '../App'
+import { soundEffects } from '@/lib/soundEffects'
 
 interface LiveMatchProps {
   match: Match
@@ -22,20 +24,37 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
   const [score2, setScore2] = useState(match.score2)
   const [goals, setGoals] = useState<Goal[]>(match.goals)
   const [comments, setComments] = useState(match.comments || '')
+  const [soundEnabled, setSoundEnabled] = useState(true)
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     
     if (isRunning) {
       interval = setInterval(() => {
-        setTime(prevTime => prevTime + 1)
+        setTime(prevTime => {
+          const newTime = prevTime + 1
+          
+          // Show milestone notifications (every 5 minutes)
+          if (newTime > 0 && newTime % 300 === 0) {
+            const minutes = Math.floor(newTime / 60)
+            toast.info(`${minutes} minutes played`, {
+              duration: 3000,
+            })
+            
+            if (soundEnabled) {
+              soundEffects.playNotificationSound()
+            }
+          }
+          
+          return newTime
+        })
       }, 1000)
     }
     
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning])
+  }, [isRunning, soundEnabled])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -47,10 +66,39 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     setIsRunning(true)
     const updatedMatch = { ...match, status: 'live' as const }
     onUpdateMatch(updatedMatch)
+    
+    // Enable audio context on user interaction and play start sound
+    if (soundEnabled) {
+      soundEffects.enableAudio().then(() => {
+        soundEffects.playMatchStartSound()
+      })
+    }
+    
+    toast.success('Match started! ⚽', {
+      description: `${match.team1.name} vs ${match.team2.name}`
+    })
   }
 
   const pauseMatch = () => {
     setIsRunning(false)
+    
+    toast.info('Match paused', {
+      description: 'Timer stopped',
+      duration: 2000,
+    })
+  }
+
+  const resumeMatch = () => {
+    setIsRunning(true)
+    
+    if (soundEnabled) {
+      soundEffects.playNotificationSound()
+    }
+    
+    toast.success('Match resumed', {
+      description: 'Timer running',
+      duration: 2000,
+    })
   }
 
   const addGoal = (teamId: string, playerId: string) => {
@@ -71,11 +119,23 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     const updatedGoals = [...goals, newGoal]
     setGoals(updatedGoals)
 
+    const teamName = tournament.teams.find(t => t.id === teamId)?.name || 'Unknown Team'
+    
     if (teamId === match.team1.id) {
       setScore1(prev => prev + 1)
     } else {
       setScore2(prev => prev + 1)
     }
+    
+    // Play goal sound and show notification
+    if (soundEnabled) {
+      soundEffects.playGoalSound()
+    }
+    
+    toast.success('⚽ GOAL!', {
+      description: `${player.alias} scores for ${teamName} at ${newGoal.minute}'`,
+      duration: 4000,
+    })
   }
 
   const removeGoal = (goalId: string) => {
@@ -84,12 +144,20 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
 
     const updatedGoals = goals.filter(g => g.id !== goalId)
     setGoals(updatedGoals)
+    
+    const teamName = tournament.teams.find(t => t.id === goalToRemove.teamId)?.name || 'Unknown Team'
 
     if (goalToRemove.teamId === match.team1.id) {
       setScore1(prev => Math.max(0, prev - 1))
     } else {
       setScore2(prev => Math.max(0, prev - 1))
     }
+    
+    // Show notification for goal removal
+    toast.info('Goal removed', {
+      description: `${goalToRemove.playerName}'s goal for ${teamName} has been removed`,
+      duration: 3000,
+    })
   }
 
   const endMatch = () => {
@@ -105,6 +173,20 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
       comments: comments.trim()
     }
     
+    // Play match end sound and show final score notification
+    if (soundEnabled) {
+      soundEffects.playMatchEndSound()
+    }
+    
+    const winnerText = score1 > score2 ? `${match.team1.name} wins!` :
+                      score2 > score1 ? `${match.team2.name} wins!` : 
+                      'It\'s a draw!'
+    
+    toast.success(`Match completed! ${winnerText}`, {
+      description: `Final score: ${match.team1.name} ${score1} - ${score2} ${match.team2.name}`,
+      duration: 5000,
+    })
+    
     onUpdateMatch(finalMatch)
     onEndMatch()
   }
@@ -118,9 +200,29 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl">Live Match</CardTitle>
-            <Badge variant={isRunning ? "default" : "secondary"}>
-              {isRunning ? "LIVE" : "PAUSED"}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSoundEnabled(!soundEnabled)
+                  toast.info(soundEnabled ? 'Sound effects disabled' : 'Sound effects enabled', {
+                    duration: 2000,
+                  })
+                }}
+                className="flex items-center gap-2"
+              >
+                {soundEnabled ? (
+                  <SpeakerHigh className="w-4 h-4" />
+                ) : (
+                  <SpeakerSlash className="w-4 h-4" />
+                )}
+                {soundEnabled ? 'Sound On' : 'Sound Off'}
+              </Button>
+              <Badge variant={isRunning ? "default" : "secondary"}>
+                {isRunning ? "LIVE" : "PAUSED"}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -142,7 +244,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
               )}
               
               {!isRunning && match.status === 'live' && (
-                <Button onClick={() => setIsRunning(true)} size="lg">
+                <Button onClick={resumeMatch} size="lg">
                   <Play className="w-5 h-5 mr-2" />
                   Resume
                 </Button>
