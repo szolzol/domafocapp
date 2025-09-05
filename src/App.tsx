@@ -3,6 +3,9 @@ import { useKV } from '@github/spark/hooks'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Plus, Calendar, Users, Trophy, BarChart3, Trash2 } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'
@@ -74,6 +77,12 @@ function App() {
   const [currentView, setCurrentView] = useState<'home' | 'setup' | 'fixtures' | 'match' | 'edit' | 'stats'>('home')
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{open: boolean, tournamentId: string, tournamentName: string}>({
+    open: false,
+    tournamentId: '',
+    tournamentName: ''
+  })
+  const [deleteText, setDeleteText] = useState('')
 
   const createNewTournament = () => {
     const newTournament: Tournament = {
@@ -135,7 +144,31 @@ function App() {
       setCurrentView('home')
     }
     
+    // Reset delete confirmation state
+    setDeleteConfirmation({open: false, tournamentId: '', tournamentName: ''})
+    setDeleteText('')
+    
     toast.success('Tournament deleted successfully')
+  }
+
+  const openDeleteConfirmation = (tournamentId: string, tournamentName: string) => {
+    setDeleteConfirmation({
+      open: true,
+      tournamentId,
+      tournamentName
+    })
+    setDeleteText('')
+  }
+
+  const closeDeleteConfirmation = () => {
+    setDeleteConfirmation({open: false, tournamentId: '', tournamentName: ''})
+    setDeleteText('')
+  }
+
+  const confirmDelete = () => {
+    if (deleteText === 'DELETE') {
+      deleteTournament(deleteConfirmation.tournamentId)
+    }
   }
 
   const updateMatch = (updatedMatch: Match) => {
@@ -157,7 +190,7 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <img src={soccerBallIcon} alt="Soccer Ball" className="w-8 h-8" />
+            <img src={soccerBallIcon} alt="Soccer Ball" className="w-10 h-10 object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
@@ -224,7 +257,7 @@ function App() {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation()
-                            deleteTournament(tournament.id)
+                            openDeleteConfirmation(tournament.id, tournament.name || 'Unnamed Tournament')
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
@@ -254,6 +287,42 @@ function App() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmation.open} onOpenChange={closeDeleteConfirmation}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Tournament</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteConfirmation.tournamentName}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="delete-text" className="text-sm font-medium">
+              Type "DELETE" to confirm:
+            </Label>
+            <Input
+              id="delete-text"
+              value={deleteText}
+              onChange={(e) => setDeleteText(e.target.value)}
+              placeholder="DELETE"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDeleteConfirmation}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+              disabled={deleteText !== 'DELETE'}
+            >
+              Delete Tournament
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 
