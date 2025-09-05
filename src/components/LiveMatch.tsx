@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash2, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react"
+import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react"
 import { toast } from 'sonner'
 import { Tournament, Match, Goal, Player } from '../App'
 import { soundService } from '@/lib/soundService'
@@ -464,7 +464,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                       onClick={() => removeGoal(goal.id)}
                       className="h-6 w-6 p-0 text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
