@@ -274,14 +274,9 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 ⏰ HALF TIME
               </div>
             )}
-            {tournament.hasHalfTime && time >= 2700 && !isHalfTime && (
+            {tournament.hasHalfTime && !isHalfTime && (
               <div className="text-sm text-muted-foreground">
-                Second Half
-              </div>
-            )}
-            {tournament.hasHalfTime && time < 2700 && (
-              <div className="text-sm text-muted-foreground">
-                First Half
+                {firstHalfCompleted ? 'Second Half' : 'First Half'}
               </div>
             )}
             <div className="flex gap-4 justify-center">

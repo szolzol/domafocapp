@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Trash, Users, Shuffle, Edit2 } from "@phosphor-icons/react"
+import { Plus, Trash2, Users, Shuffle, Edit2 } from "@phosphor-icons/react"
 import { Tournament, Team, Player } from '../App'
 
 interface TournamentSetupProps {
@@ -310,7 +310,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                       size="sm"
                       onClick={() => removePlayer(index)}
                     >
-                      <Trash className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 ))}

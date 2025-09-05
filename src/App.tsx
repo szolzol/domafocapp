@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Calendar, Users, Trophy, BarChart3, Trash } from "@phosphor-icons/react"
+import { Plus, Calendar, Users, Trophy, BarChart3, Trash2 } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'
 import soccerBallIcon from '@/assets/images/soccer_ball.png'
@@ -261,7 +261,7 @@ function App() {
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
-                          <Trash className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
