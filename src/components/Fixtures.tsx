@@ -239,33 +239,30 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
               <CardTitle>League Table</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <div className="min-w-[400px] space-y-2">
-                  <div className="grid grid-cols-10 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
-                    <span className="col-span-5">Team</span>
-                    <span className="text-center">P</span>
-                    <span className="text-center">W</span>
-                    <span className="text-center">D</span>
-                    <span className="text-center">L</span>
-                    <span className="text-center">Pts</span>
-                  </div>
-                  
-                  {leagueTable.map((team, index) => (
-                    <div key={team.id} className="grid grid-cols-10 gap-2 py-2 text-sm">
-                      <div className="col-span-5 flex items-center gap-2">
-                        <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
-                          {index + 1}.
-                        </span>
-                        <span className="font-medium truncate" title={team.name}>{team.name}</span>
-                      </div>
-                      <span className="text-center">{team.stats.played}</span>
-                      <span className="text-center">{team.stats.won}</span>
-                      <span className="text-center">{team.stats.drawn}</span>
-                      <span className="text-center">{team.stats.lost}</span>
-                      <span className="text-center font-bold">{team.stats.points}</span>
-                    </div>
-                  ))}
+              <div className="space-y-2">
+                <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-1 sm:gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
+                  <span className="w-6">#</span>
+                  <span>Team</span>
+                  <span className="text-center w-8">P</span>
+                  <span className="text-center w-8">W</span>
+                  <span className="text-center w-8">D</span>
+                  <span className="text-center w-8">L</span>
+                  <span className="text-center w-10">Pts</span>
                 </div>
+                
+                {leagueTable.map((team, index) => (
+                  <div key={team.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-1 sm:gap-2 py-1.5 text-sm items-center">
+                    <span className="text-muted-foreground font-mono text-xs w-6">
+                      {index + 1}.
+                    </span>
+                    <span className="font-medium truncate min-w-0" title={team.name}>{team.name}</span>
+                    <span className="text-center w-8">{team.stats.played}</span>
+                    <span className="text-center w-8">{team.stats.won}</span>
+                    <span className="text-center w-8">{team.stats.drawn}</span>
+                    <span className="text-center w-8">{team.stats.lost}</span>
+                    <span className="text-center font-bold w-10">{team.stats.points}</span>
+                  </div>
+                ))}
               </div>
               
               {leagueTable.length === 0 && (
