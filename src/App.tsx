@@ -16,6 +16,8 @@ import LiveMatch from '@/components/LiveMatch'
 import MatchEditor from '@/components/MatchEditor'
 import Statistics from '@/components/Statistics'
 import DataImporter from '@/components/DataImporter'
+import { ThemeProvider } from '@/components/theme-provider'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export interface Tournament {
   id: string
@@ -193,16 +195,19 @@ function App() {
   }
 
   const renderHomeScreen = () => (
-    <div className="min-h-screen p-4 sm:p-6 bg-slate-100">
+    <div className="min-h-screen p-4 sm:p-6 bg-slate-100 dark:bg-background">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 flex items-center justify-center">
-            <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
+              <p className="text-muted-foreground">Friendly Football Tournament Manager</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
-            <p className="text-muted-foreground">Friendly Football Tournament Manager</p>
-          </div>
+          <ModeToggle />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -352,10 +357,14 @@ function App() {
     </div>
   )
 
-  if (currentView === 'home') return renderHomeScreen()
+  if (currentView === 'home') return (
+    <ThemeProvider defaultTheme="light" storageKey="domafocapp-theme">
+      {renderHomeScreen()}
+    </ThemeProvider>
+  )
 
   return (
-    <>
+    <ThemeProvider defaultTheme="light" storageKey="domafocapp-theme">
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -371,34 +380,37 @@ function App() {
               ← DomaFocApp
             </Button>
             
-            {selectedTournament && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">{selectedTournament.name || 'Unnamed Tournament'}</h1>
+            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+              {selectedTournament && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">{selectedTournament.name || 'Unnamed Tournament'}</h1>
 
+                  </div>
+                  <div className="flex gap-2">
+                    {selectedTournament.status !== 'setup' && (
+                      <>
+                        <Button
+                          variant={currentView === 'fixtures' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setCurrentView('fixtures')}
+                        >
+                          Fixtures
+                        </Button>
+                        <Button
+                          variant={currentView === 'stats' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setCurrentView('stats')}
+                        >
+                          Stats
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {selectedTournament.status !== 'setup' && (
-                    <>
-                      <Button
-                        variant={currentView === 'fixtures' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setCurrentView('fixtures')}
-                      >
-                        Fixtures
-                      </Button>
-                      <Button
-                        variant={currentView === 'stats' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setCurrentView('stats')}
-                      >
-                        Stats
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
+              )}
+              <ModeToggle />
+            </div>
           </div>
         </header>
 
@@ -463,7 +475,7 @@ function App() {
           }
         }}
       />
-    </>
+    </ThemeProvider>
   )
 }
 
