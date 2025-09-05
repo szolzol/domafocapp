@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Calendar, Users, Trophy, BarChart3, Trash } from "@phosphor-icons/react"
+import { Plus, Calendar, Users, Trophy, BarChart3, Trash, Upload } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'
 import soccerBallIcon from '@/assets/images/soccer_ball.png'
@@ -15,6 +15,7 @@ import Fixtures from '@/components/Fixtures'
 import LiveMatch from '@/components/LiveMatch'
 import MatchEditor from '@/components/MatchEditor'
 import Statistics from '@/components/Statistics'
+import DataImporter from '@/components/DataImporter'
 
 export interface Tournament {
   id: string
@@ -83,6 +84,7 @@ function App() {
     tournamentName: ''
   })
   const [deleteText, setDeleteText] = useState('')
+  const [showImporter, setShowImporter] = useState(false)
 
   const createNewTournament = () => {
     const newTournament: Tournament = {
@@ -185,6 +187,11 @@ function App() {
     setSelectedMatch(updatedMatch)
   }
 
+  const handleImportTournaments = (importedTournaments: Tournament[]) => {
+    setTournaments(currentTournaments => [...currentTournaments, ...importedTournaments])
+    setShowImporter(false)
+  }
+
   const renderHomeScreen = () => (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
@@ -220,6 +227,18 @@ function App() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">View tournament statistics</p>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowImporter(true)}>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Upload className="w-5 h-5" />
+                Import Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Import from Excel/CSV</p>
             </CardContent>
           </Card>
         </div>
@@ -323,6 +342,13 @@ function App() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Data Import Dialog */}
+      <DataImporter
+        isOpen={showImporter}
+        onClose={() => setShowImporter(false)}
+        onImport={handleImportTournaments}
+      />
     </div>
   )
 

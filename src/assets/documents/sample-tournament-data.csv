@@ -1,0 +1,16 @@
+Tournament Name,Tournament Date,Team Name,Player Name,Player Alias,Player Strength,Team 1,Team 2,Team 1 Score,Team 2 Score,Goal Scorer,Goal Team,Goal Minute
+Doma Football Day,2024-08-23,Red Eagles,John Smith,Johnny,strong,,,,,,,
+Doma Football Day,2024-08-23,Red Eagles,Mike Johnson,Mikey,weak,,,,,,,
+Doma Football Day,2024-08-23,Blue Tigers,Sarah Davis,Sar,strong,,,,,,,
+Doma Football Day,2024-08-23,Blue Tigers,Tom Wilson,Tommy,weak,,,,,,,
+Doma Football Day,2024-08-23,Green Lions,Alex Brown,Alex,strong,,,,,,,
+Doma Football Day,2024-08-23,Green Lions,Emma White,Em,weak,,,,,,,
+Doma Football Day,2024-08-23,Yellow Wolves,Chris Lee,Chris,strong,,,,,,,
+Doma Football Day,2024-08-23,Yellow Wolves,Lisa Green,Lisa,weak,,,,,,,
+Doma Football Day,2024-08-23,,,,,Red Eagles,Blue Tigers,2,1,Johnny,Red Eagles,15
+Doma Football Day,2024-08-23,,,,,Red Eagles,Blue Tigers,2,1,Mikey,Red Eagles,45
+Doma Football Day,2024-08-23,,,,,Red Eagles,Blue Tigers,2,1,Sar,Blue Tigers,60
+Doma Football Day,2024-08-23,,,,,Green Lions,Yellow Wolves,1,3,Alex,Green Lions,20
+Doma Football Day,2024-08-23,,,,,Green Lions,Yellow Wolves,1,3,Chris,Yellow Wolves,35
+Doma Football Day,2024-08-23,,,,,Green Lions,Yellow Wolves,1,3,Lisa,Yellow Wolves,50
+Doma Football Day,2024-08-23,,,,,Green Lions,Yellow Wolves,1,3,Chris,Yellow Wolves,70
