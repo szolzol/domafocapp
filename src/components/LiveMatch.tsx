@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Play, Pause, Square, Plus, Minus, MessageSquare } from "@phosphor-icons/react"
+import { Play, Pause, Square, Plus, Minus, MessageSquare, Trash2 } from "@phosphor-icons/react"
 import { Tournament, Match, Goal, Player } from '../App'
 
 interface LiveMatchProps {
@@ -78,15 +78,14 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
     }
   }
 
-  const removeLastGoal = (teamId: string) => {
-    const teamGoals = goals.filter(g => g.teamId === teamId)
-    if (teamGoals.length === 0) return
+  const removeGoal = (goalId: string) => {
+    const goalToRemove = goals.find(g => g.id === goalId)
+    if (!goalToRemove) return
 
-    const lastGoal = teamGoals[teamGoals.length - 1]
-    const updatedGoals = goals.filter(g => g.id !== lastGoal.id)
+    const updatedGoals = goals.filter(g => g.id !== goalId)
     setGoals(updatedGoals)
 
-    if (teamId === match.team1.id) {
+    if (goalToRemove.teamId === match.team1.id) {
       setScore1(prev => Math.max(0, prev - 1))
     } else {
       setScore2(prev => Math.max(0, prev - 1))
@@ -185,7 +184,12 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeLastGoal(match.team1.id)}
+                  onClick={() => {
+                    const teamGoals = goals.filter(g => g.teamId === match.team1.id)
+                    if (teamGoals.length > 0) {
+                      removeGoal(teamGoals[teamGoals.length - 1].id)
+                    }
+                  }}
                   disabled={team1Goals.length === 0}
                   className="w-full"
                 >
@@ -240,7 +244,12 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeLastGoal(match.team2.id)}
+                  onClick={() => {
+                    const teamGoals = goals.filter(g => g.teamId === match.team2.id)
+                    if (teamGoals.length > 0) {
+                      removeGoal(teamGoals[teamGoals.length - 1].id)
+                    }
+                  }}
                   disabled={team2Goals.length === 0}
                   className="w-full"
                 >
@@ -281,9 +290,19 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                     <span className="font-medium">{goal.playerName}</span>
                     <span className="text-muted-foreground">⚽</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {tournament.teams.find(t => t.id === goal.teamId)?.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {tournament.teams.find(t => t.id === goal.teamId)?.name}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeGoal(goal.id)}
+                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

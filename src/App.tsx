@@ -7,6 +7,7 @@ import { Plus, Calendar, Users, Trophy, BarChart3 } from "@phosphor-icons/react"
 import TournamentSetup from '@/components/TournamentSetup'
 import Fixtures from '@/components/Fixtures'
 import LiveMatch from '@/components/LiveMatch'
+import MatchEditor from '@/components/MatchEditor'
 import Statistics from '@/components/Statistics'
 
 export interface Tournament {
@@ -17,6 +18,7 @@ export interface Tournament {
   teams: Team[]
   fixtures: Match[]
   rounds: number
+  teamSize: number // 2v2, 3v3, 4v4, 5v5, 6v6
 }
 
 export interface Team {
@@ -65,7 +67,7 @@ export interface Goal {
 
 function App() {
   const [tournaments, setTournaments] = useKV("tournaments", [] as Tournament[])
-  const [currentView, setCurrentView] = useState<'home' | 'setup' | 'fixtures' | 'match' | 'stats'>('home')
+  const [currentView, setCurrentView] = useState<'home' | 'setup' | 'fixtures' | 'match' | 'edit' | 'stats'>('home')
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
 
@@ -77,7 +79,8 @@ function App() {
       status: 'setup',
       teams: [],
       fixtures: [],
-      rounds: 1
+      rounds: 1,
+      teamSize: 2 // Default to 2v2
     }
     setSelectedTournament(newTournament)
     setCurrentView('setup')
@@ -109,6 +112,11 @@ function App() {
   const startMatch = (match: Match) => {
     setSelectedMatch(match)
     setCurrentView('match')
+  }
+
+  const editMatch = (match: Match) => {
+    setSelectedMatch(match)
+    setCurrentView('edit')
   }
 
   const updateMatch = (updatedMatch: Match) => {
@@ -230,6 +238,9 @@ function App() {
           {selectedTournament && (
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-semibold">{selectedTournament.name || 'Unnamed Tournament'}</h1>
+              <div className="text-xs text-muted-foreground">
+                {selectedTournament.teamSize}v{selectedTournament.teamSize}
+              </div>
               <div className="flex gap-2">
                 {selectedTournament.status !== 'setup' && (
                   <>
@@ -271,6 +282,7 @@ function App() {
           <Fixtures
             tournament={selectedTournament}
             onStartMatch={startMatch}
+            onEditMatch={editMatch}
             onUpdateTournament={saveTournament}
           />
         )}
@@ -281,6 +293,18 @@ function App() {
             tournament={selectedTournament}
             onUpdateMatch={updateMatch}
             onEndMatch={() => setCurrentView('fixtures')}
+          />
+        )}
+
+        {currentView === 'edit' && selectedMatch && selectedTournament && (
+          <MatchEditor
+            match={selectedMatch}
+            tournament={selectedTournament}
+            onSave={(updatedMatch) => {
+              updateMatch(updatedMatch)
+              setCurrentView('fixtures')
+            }}
+            onCancel={() => setCurrentView('fixtures')}
           />
         )}
 

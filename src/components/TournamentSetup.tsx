@@ -19,6 +19,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
   const [name, setName] = useState(tournament.name)
   const [date, setDate] = useState(tournament.date)
   const [rounds, setRounds] = useState(tournament.rounds || 1)
+  const [teamSize, setTeamSize] = useState(tournament.teamSize || 2)
   const [players, setPlayers] = useState<Array<{name: string, hat: 'first' | 'second'}>>([])
   const [teams, setTeams] = useState<Team[]>(tournament.teams)
   const [newPlayerName, setNewPlayerName] = useState('')
@@ -40,7 +41,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
   }
 
   const generateTeams = () => {
-    if (players.length < 2) return
+    if (players.length < teamSize) return
     
     // Separate players by hat (skill level)
     const firstHat = players.filter(p => p.hat === 'first')
@@ -50,72 +51,33 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
     const shuffledFirst = [...firstHat].sort(() => Math.random() - 0.5)
     const shuffledSecond = [...secondHat].sort(() => Math.random() - 0.5)
     
+    // Combine all players and shuffle for team distribution
+    const allShuffled = [...shuffledFirst, ...shuffledSecond].sort(() => Math.random() - 0.5)
+    
     const newTeams: Team[] = []
-    const minTeams = Math.min(shuffledFirst.length, shuffledSecond.length)
+    const numTeams = Math.floor(allShuffled.length / teamSize)
     
-    // Create balanced teams (1 first hat + 1 second hat)
-    for (let i = 0; i < minTeams; i++) {
-      const teamPlayers: Player[] = [
-        {
-          id: `${Date.now()}_${i}_0`,
-          name: shuffledFirst[i].name,
-          alias: shuffledFirst[i].name, // Default alias to name
-          goals: 0,
-          hat: 'first'
-        },
-        {
-          id: `${Date.now()}_${i}_1`,
-          name: shuffledSecond[i].name,
-          alias: shuffledSecond[i].name, // Default alias to name
-          goals: 0,
-          hat: 'second'
-        }
-      ]
+    // Create teams with the specified team size
+    for (let i = 0; i < numTeams; i++) {
+      const teamPlayers: Player[] = []
       
-      newTeams.push({
-        id: `team_${Date.now()}_${i}`,
-        name: `Team ${i + 1}`,
-        players: teamPlayers,
-        stats: {
-          played: 0,
-          won: 0,
-          drawn: 0,
-          lost: 0,
-          goalsFor: 0,
-          goalsAgainst: 0,
-          points: 0
+      for (let j = 0; j < teamSize; j++) {
+        const playerIndex = i * teamSize + j
+        if (playerIndex < allShuffled.length) {
+          teamPlayers.push({
+            id: `${Date.now()}_${i}_${j}`,
+            name: allShuffled[playerIndex].name,
+            alias: allShuffled[playerIndex].name, // Default alias to name
+            goals: 0,
+            hat: allShuffled[playerIndex].hat
+          })
         }
-      })
-    }
-    
-    // Handle remaining players if uneven numbers
-    const remainingFirst = shuffledFirst.slice(minTeams)
-    const remainingSecond = shuffledSecond.slice(minTeams)
-    const allRemaining = [...remainingFirst, ...remainingSecond]
-    
-    // Pair remaining players
-    for (let i = 0; i < allRemaining.length; i += 2) {
-      if (i + 1 < allRemaining.length) {
-        const teamPlayers: Player[] = [
-          {
-            id: `${Date.now()}_extra_${i}_0`,
-            name: allRemaining[i].name,
-            alias: allRemaining[i].name,
-            goals: 0,
-            hat: allRemaining[i].hat
-          },
-          {
-            id: `${Date.now()}_extra_${i}_1`,
-            name: allRemaining[i + 1].name,
-            alias: allRemaining[i + 1].name,
-            goals: 0,
-            hat: allRemaining[i + 1].hat
-          }
-        ]
-        
+      }
+      
+      if (teamPlayers.length === teamSize) {
         newTeams.push({
-          id: `team_extra_${Date.now()}_${i}`,
-          name: `Team ${newTeams.length + 1}`,
+          id: `team_${Date.now()}_${i}`,
+          name: `Team ${i + 1}`,
           players: teamPlayers,
           stats: {
             played: 0,
@@ -203,6 +165,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
       name: name.trim(),
       date: date,
       rounds: rounds,
+      teamSize: teamSize,
       teams,
       fixtures,
       status: 'active'
@@ -251,6 +214,21 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 <SelectItem value="2">2 Rounds (each team plays twice)</SelectItem>
                 <SelectItem value="3">3 Rounds (each team plays three times)</SelectItem>
                 <SelectItem value="4">4 Rounds (each team plays four times)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="team-size">Team Size</Label>
+            <Select value={teamSize.toString()} onValueChange={(value) => setTeamSize(parseInt(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select team size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2v2 (2 players per team)</SelectItem>
+                <SelectItem value="3">3v3 (3 players per team)</SelectItem>
+                <SelectItem value="4">4v4 (4 players per team)</SelectItem>
+                <SelectItem value="5">5v5 (5 players per team)</SelectItem>
+                <SelectItem value="6">6v6 (6 players per team)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -328,20 +306,30 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
               <div className="flex gap-2 mt-4">
                 <Button 
                   onClick={generateTeams} 
-                  disabled={players.length < 2}
+                  disabled={players.length < teamSize}
                   variant="outline"
                 >
                   <Shuffle className="w-4 h-4 mr-2" />
-                  Generate Balanced Teams
+                  Generate Teams ({teamSize}v{teamSize})
                 </Button>
                 <span className="text-sm text-muted-foreground flex items-center">
-                  {players.length % 2 === 1 && players.length > 0 && (
-                    <Badge variant="secondary">1 player will sit out</Badge>
+                  {players.length % teamSize !== 0 && players.length > 0 && (
+                    <Badge variant="secondary">
+                      {players.length % teamSize} player{players.length % teamSize !== 1 ? 's' : ''} will sit out
+                    </Badge>
                   )}
                 </span>
               </div>
               
-              {Math.abs(firstHatCount - secondHatCount) > 1 && players.length > 2 && (
+              {players.length < teamSize && players.length > 0 && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> You need at least {teamSize} players to form teams for {teamSize}v{teamSize} format.
+                  </p>
+                </div>
+              )}
+              
+              {Math.abs(firstHatCount - secondHatCount) > teamSize && players.length >= teamSize && (
                 <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <p className="text-sm text-amber-800">
                     <strong>Note:</strong> Uneven skill distribution. Teams will be balanced as much as possible.
@@ -440,7 +428,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             
             <div className="mt-4 p-4 bg-primary/10 rounded-lg">
               <p className="text-sm text-primary">
-                <strong>Tournament Format:</strong> {rounds} round{rounds > 1 ? 's' : ''} with {teams.length * (teams.length - 1) / 2 * rounds} matches total
+                <strong>Tournament Format:</strong> {teamSize}v{teamSize} • {rounds} round{rounds > 1 ? 's' : ''} • {teams.length * (teams.length - 1) / 2 * rounds} matches total
               </p>
             </div>
           </CardContent>
@@ -455,6 +443,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             name: name.trim(),
             date,
             rounds,
+            teamSize,
             teams
           })}
         >

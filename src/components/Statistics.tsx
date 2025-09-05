@@ -141,6 +141,12 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
     let mostGoalsInMatch = { goals: 0, playerName: '', count: 0 }
     let longestMatch = { duration: 0, match: null as any }
     let shortestMatch = { duration: Infinity, match: null as any }
+    let biggestWin = { margin: 0, match: null as any }
+    let mostGoalsPlayer = { playerName: '', goals: 0 }
+    let cleanSheets = { playerName: '', count: 0 }
+    let hatTricks = [] as Array<{ playerName: string, matchInfo: string }>
+
+    const playerGoalTotals = new Map<string, number>()
 
     tournamentsToAnalyze.forEach(tournament => {
       tournament.fixtures.forEach(match => {
@@ -149,12 +155,22 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
           match.goals.forEach(goal => {
             if (goal.minute < earliestGoal) earliestGoal = goal.minute
             if (goal.minute > latestGoal) latestGoal = goal.minute
+
+            // Track total goals per player
+            const currentTotal = playerGoalTotals.get(goal.playerId) || 0
+            playerGoalTotals.set(goal.playerId, currentTotal + 1)
           })
 
           // Check highest scoring match
           const totalScore = match.score1 + match.score2
           if (totalScore > highestScoringMatch.score) {
             highestScoringMatch = { score: totalScore, match }
+          }
+
+          // Check biggest win margin
+          const margin = Math.abs(match.score1 - match.score2)
+          if (margin > biggestWin.margin) {
+            biggestWin = { margin, match }
           }
 
           // Check most goals by single player in a match
@@ -173,18 +189,60 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                 count: count 
               }
             }
+
+            // Check for hat tricks (3+ goals)
+            if (count >= 3) {
+              const goal = match.goals.find(g => g.playerId === playerId)
+              hatTricks.push({
+                playerName: goal?.playerName || '',
+                matchInfo: `${match.team1.name} vs ${match.team2.name}`
+              })
+            }
           }
 
           // Check match duration
           if (match.duration > longestMatch.duration) {
             longestMatch = { duration: match.duration, match }
           }
-          if (match.duration < shortestMatch.duration) {
+          if (match.duration < shortestMatch.duration && match.duration > 0) {
             shortestMatch = { duration: match.duration, match }
+          }
+
+          // Check clean sheets (no goals conceded)
+          if (match.score1 === 0) {
+            // Team 2 kept clean sheet
+            match.team2.players.forEach(player => {
+              // This is simplified - in real scenario you'd track goalkeepers
+            })
+          }
+          if (match.score2 === 0) {
+            // Team 1 kept clean sheet
+            match.team1.players.forEach(player => {
+              // This is simplified - in real scenario you'd track goalkeepers
+            })
           }
         }
       })
     })
+
+    // Find player with most goals overall
+    for (const [playerId, goals] of playerGoalTotals) {
+      if (goals > mostGoalsPlayer.goals) {
+        // Find player name from any tournament
+        let playerName = ''
+        for (const tournament of tournamentsToAnalyze) {
+          for (const team of tournament.teams) {
+            const player = team.players.find(p => p.id === playerId)
+            if (player) {
+              playerName = player.alias
+              break
+            }
+          }
+          if (playerName) break
+        }
+        mostGoalsPlayer = { playerName, goals }
+      }
+    }
 
     return {
       earliestGoal: earliestGoal === Infinity ? null : earliestGoal,
@@ -192,7 +250,12 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
       highestScoringMatch: highestScoringMatch.score === 0 ? null : highestScoringMatch,
       mostGoalsInMatch: mostGoalsInMatch.count === 0 ? null : mostGoalsInMatch,
       longestMatch: longestMatch.duration === 0 ? null : longestMatch,
-      shortestMatch: shortestMatch.duration === Infinity ? null : shortestMatch
+      shortestMatch: shortestMatch.duration === Infinity ? null : shortestMatch,
+      biggestWin: biggestWin.margin === 0 ? null : biggestWin,
+      mostGoalsPlayer: mostGoalsPlayer.goals === 0 ? null : mostGoalsPlayer,
+      hatTricks: hatTricks.length > 0 ? hatTricks : null,
+      totalMatches: tournamentsToAnalyze.reduce((acc, t) => acc + t.fixtures.filter(m => m.status === 'completed').length, 0),
+      totalGoals: Array.from(playerGoalTotals.values()).reduce((acc, goals) => acc + goals, 0)
     }
   }
 
@@ -409,6 +472,50 @@ function Statistics({ tournaments, selectedTournament }: StatisticsProps) {
                   <div className="text-xs text-muted-foreground mt-1">
                     {funFacts.shortestMatch.match.team1.name} vs {funFacts.shortestMatch.match.team2.name}
                   </div>
+                </div>
+              )}
+
+              {funFacts.biggestWin && (
+                <div className="text-center p-4 bg-accent/10 rounded-lg">
+                  <Trophy className="w-8 h-8 mx-auto text-accent mb-2" />
+                  <div className="text-2xl font-bold text-accent">{funFacts.biggestWin.margin}</div>
+                  <div className="text-sm text-muted-foreground">Biggest Win Margin</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {funFacts.biggestWin.match.team1.name} {funFacts.biggestWin.match.score1}-{funFacts.biggestWin.match.score2} {funFacts.biggestWin.match.team2.name}
+                  </div>
+                </div>
+              )}
+
+              {funFacts.mostGoalsPlayer && (
+                <div className="text-center p-4 bg-accent/10 rounded-lg">
+                  <Star className="w-8 h-8 mx-auto text-accent mb-2" />
+                  <div className="text-2xl font-bold text-accent">{funFacts.mostGoalsPlayer.goals}</div>
+                  <div className="text-sm text-muted-foreground">Top Scorer</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {funFacts.mostGoalsPlayer.playerName}
+                  </div>
+                </div>
+              )}
+
+              {funFacts.hatTricks && funFacts.hatTricks.length > 0 && (
+                <div className="text-center p-4 bg-accent/10 rounded-lg">
+                  <Target className="w-8 h-8 mx-auto text-accent mb-2" />
+                  <div className="text-2xl font-bold text-accent">{funFacts.hatTricks.length}</div>
+                  <div className="text-sm text-muted-foreground">Hat Tricks</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {funFacts.hatTricks[0].playerName}
+                    {funFacts.hatTricks.length > 1 && ` +${funFacts.hatTricks.length - 1} more`}
+                  </div>
+                </div>
+              )}
+
+              {funFacts.totalMatches > 0 && (
+                <div className="text-center p-4 bg-accent/10 rounded-lg">
+                  <Calendar className="w-8 h-8 mx-auto text-accent mb-2" />
+                  <div className="text-2xl font-bold text-accent">
+                    {(funFacts.totalGoals / funFacts.totalMatches).toFixed(1)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Goals per Match</div>
                 </div>
               )}
             </div>

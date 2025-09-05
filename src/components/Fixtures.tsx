@@ -1,16 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Play, Eye } from "@phosphor-icons/react"
+import { Play, Eye, Edit } from "@phosphor-icons/react"
 import { Tournament, Match, Team } from '../App'
 
 interface FixturesProps {
   tournament: Tournament
   onStartMatch: (match: Match) => void
   onUpdateTournament: (tournament: Tournament) => void
+  onEditMatch?: (match: Match) => void
 }
 
-function Fixtures({ tournament, onStartMatch, onUpdateTournament }: FixturesProps) {
+function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }: FixturesProps) {
   const calculateLeagueTable = () => {
     const table = tournament.teams.map(team => ({
       ...team,
@@ -152,6 +153,17 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament }: FixturesProp
                           View Live
                         </Button>
                       )}
+                      
+                      {match.status === 'completed' && onEditMatch && (
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onEditMatch(match)}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -173,32 +185,27 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament }: FixturesProp
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="grid grid-cols-8 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
-                  <span className="col-span-2">Team</span>
+                <div className="grid grid-cols-8 gap-3 text-xs font-medium text-muted-foreground pb-2 border-b">
+                  <span className="col-span-3">Team</span>
                   <span className="text-center">P</span>
                   <span className="text-center">W</span>
                   <span className="text-center">D</span>
                   <span className="text-center">L</span>
-                  <span className="text-center">GD</span>
                   <span className="text-center">Pts</span>
                 </div>
                 
                 {leagueTable.map((team, index) => (
-                  <div key={team.id} className="grid grid-cols-8 gap-2 py-2 text-sm">
-                    <div className="col-span-2 flex items-center gap-2">
+                  <div key={team.id} className="grid grid-cols-8 gap-3 py-2 text-sm">
+                    <div className="col-span-3 flex items-center gap-2">
                       <span className="text-muted-foreground font-mono text-xs w-4 flex-shrink-0">
                         {index + 1}.
                       </span>
-                      <span className="font-medium min-w-0 break-words" title={team.name}>{team.name}</span>
+                      <span className="font-medium truncate" title={team.name}>{team.name}</span>
                     </div>
                     <span className="text-center">{team.stats.played}</span>
                     <span className="text-center">{team.stats.won}</span>
                     <span className="text-center">{team.stats.drawn}</span>
                     <span className="text-center">{team.stats.lost}</span>
-                    <span className="text-center">
-                      {team.stats.goalsFor - team.stats.goalsAgainst > 0 ? '+' : ''}
-                      {team.stats.goalsFor - team.stats.goalsAgainst}
-                    </span>
                     <span className="text-center font-bold">{team.stats.points}</span>
                   </div>
                 ))}
