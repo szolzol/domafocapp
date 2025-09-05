@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Play, Eye, ArrowCounterClockwise } from "@phosphor-icons/react"
 import { Tournament, Match, Team } from '../App'
+import { useEffect } from 'react'
 
 interface FixturesProps {
   tournament: Tournament
@@ -25,6 +26,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
     
     const updatedTournament = {
       ...tournament,
+      status: 'active' as const, // Set back to active when rematching
       fixtures: tournament.fixtures.map(m => 
         m.id === match.id ? resetMatch : m
       )
@@ -90,7 +92,18 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
   const leagueTable = calculateLeagueTable()
   const completedMatches = tournament.fixtures.filter(m => m.status === 'completed').length
   const totalMatches = tournament.fixtures.length
-  const isComplete = completedMatches === totalMatches
+  const isComplete = completedMatches === totalMatches && totalMatches > 0
+
+  // Auto-update tournament status when all matches are completed
+  useEffect(() => {
+    if (isComplete && tournament.status === 'active') {
+      const updatedTournament = {
+        ...tournament,
+        status: 'completed' as const
+      }
+      onUpdateTournament(updatedTournament)
+    }
+  }, [isComplete, tournament, onUpdateTournament])
 
   return (
     <div className="space-y-6">
