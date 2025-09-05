@@ -212,7 +212,7 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
                           <SelectValue placeholder="Select player" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="" disabled>Select a player</SelectItem>
+                          <SelectItem value="placeholder" disabled>Select a player</SelectItem>
                           {match.team1.players.map(player => (
                             <SelectItem key={player.id} value={player.id}>
                               {player.alias} ({match.team1.name})
