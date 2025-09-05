@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Play, Eye } from "@phosphor-icons/react"
-import { Tournament, Match, Team } from '@/App'
+import { Tournament, Match, Team } from '../App'
 
 interface FixturesProps {
   tournament: Tournament

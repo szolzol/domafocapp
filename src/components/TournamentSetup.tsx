@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash, Users, Shuffle } from "@phosphor-icons/react"
-import { Tournament, Team, Player } from '@/App'
+import { Tournament, Team, Player } from '../App'
 
 interface TournamentSetupProps {
   tournament: Tournament

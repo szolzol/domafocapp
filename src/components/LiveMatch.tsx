@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Play, Pause, Square, Plus, Minus } from "@phosphor-icons/react"
-import { Tournament, Match, Goal, Player } from '@/App'
+import { Tournament, Match, Goal, Player } from '../App'
 
 interface LiveMatchProps {
   match: Match

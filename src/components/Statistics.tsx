@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Target, Users, Calendar } from "@phosphor-icons/react"
-import { Tournament, Player } from '@/App'
+import { Tournament, Player } from '../App'
 
 interface StatisticsProps {
   tournaments: Tournament[]
