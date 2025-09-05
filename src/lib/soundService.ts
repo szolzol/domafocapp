@@ -56,5 +56,6 @@ class SoundService {
       console.warn('Could not play match end sound:', error)
     }
   }
+}
 
 export const soundService = new SoundService()
