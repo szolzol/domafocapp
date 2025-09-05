@@ -143,7 +143,7 @@ function App() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
-            <p className="text-muted-foreground">Soccer Tournament Manager</p>
+            <p className="text-muted-foreground">Friendly Football Tournament Manager</p>
           </div>
         </div>
 
@@ -156,7 +156,7 @@ function App() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Start a new 2v2 soccer tournament</p>
+              <p className="text-sm text-muted-foreground">Start a new tournament</p>
             </CardContent>
           </Card>
 
@@ -168,13 +168,13 @@ function App() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">View tournament statistics and rankings</p>
+              <p className="text-sm text-muted-foreground">View tournament statistics</p>
             </CardContent>
           </Card>
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">Recent Tournaments</h2>
+          <h2 className="text-xl font-semibold mb-4">Tournaments</h2>
           {tournaments.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
