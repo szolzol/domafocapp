@@ -137,6 +137,8 @@ function App() {
     
     toast.success('Tournament deleted successfully')
   }
+
+  const updateMatch = (updatedMatch: Match) => {
     if (!selectedTournament) return
     
     const updatedTournament = {
