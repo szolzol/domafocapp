@@ -349,9 +349,7 @@ function App() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">{selectedTournament.name || 'Unnamed Tournament'}</h1>
-                  <div className="text-xs text-muted-foreground flex-shrink-0">
-                    {selectedTournament.teamSize}v{selectedTournament.teamSize}
-                  </div>
+
                 </div>
                 <div className="flex gap-2">
                   {selectedTournament.status !== 'setup' && (
