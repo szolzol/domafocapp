@@ -18,6 +18,7 @@ interface TournamentSetupProps {
 function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProps) {
   const [name, setName] = useState(tournament.name)
   const [date, setDate] = useState(tournament.date)
+  const [rounds, setRounds] = useState(tournament.rounds || 1)
   const [players, setPlayers] = useState<Array<{name: string, hat: 'first' | 'second'}>>([])
   const [teams, setTeams] = useState<Team[]>(tournament.teams)
   const [newPlayerName, setNewPlayerName] = useState('')
@@ -171,21 +172,24 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
     const fixtures = []
     let matchId = 1
     
-    // Round-robin tournament
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        fixtures.push({
-          id: matchId.toString(),
-          team1: teams[i],
-          team2: teams[j],
-          score1: 0,
-          score2: 0,
-          status: 'pending' as const,
-          round: 1,
-          duration: 0,
-          goals: []
-        })
-        matchId++
+    // Generate round-robin tournament for specified number of rounds
+    for (let round = 1; round <= rounds; round++) {
+      for (let i = 0; i < teams.length; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          fixtures.push({
+            id: matchId.toString(),
+            team1: teams[i],
+            team2: teams[j],
+            score1: 0,
+            score2: 0,
+            status: 'pending' as const,
+            round: round,
+            duration: 0,
+            goals: [],
+            comments: ''
+          })
+          matchId++
+        }
       }
     }
     
@@ -198,6 +202,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
       ...tournament,
       name: name.trim(),
       date: date,
+      rounds: rounds,
       teams,
       fixtures,
       status: 'active'
@@ -234,6 +239,20 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
+          </div>
+          <div>
+            <Label htmlFor="tournament-rounds">Number of Rounds</Label>
+            <Select value={rounds.toString()} onValueChange={(value) => setRounds(parseInt(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select number of rounds" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Round (each team plays once)</SelectItem>
+                <SelectItem value="2">2 Rounds (each team plays twice)</SelectItem>
+                <SelectItem value="3">3 Rounds (each team plays three times)</SelectItem>
+                <SelectItem value="4">4 Rounds (each team plays four times)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -421,7 +440,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             
             <div className="mt-4 p-4 bg-primary/10 rounded-lg">
               <p className="text-sm text-primary">
-                <strong>Tournament Format:</strong> Round-robin league with {teams.length * (teams.length - 1) / 2} matches total
+                <strong>Tournament Format:</strong> {rounds} round{rounds > 1 ? 's' : ''} with {teams.length * (teams.length - 1) / 2 * rounds} matches total
               </p>
             </div>
           </CardContent>
@@ -435,6 +454,7 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             ...tournament,
             name: name.trim(),
             date,
+            rounds,
             teams
           })}
         >

@@ -13,10 +13,10 @@ A comprehensive digital platform for organizing and managing friendly 2v2 soccer
 ## Essential Features
 
 ### Tournament Management
-- **Functionality**: Create and manage soccer tournament events with dates and details
-- **Purpose**: Organize multiple tournaments throughout the year with proper scheduling
+- **Functionality**: Create and manage soccer tournament events with dates, details, and customizable round settings
+- **Purpose**: Organize multiple tournaments throughout the year with proper scheduling and flexible formats
 - **Trigger**: User clicks "Create Tournament" from main dashboard
-- **Progression**: Tournament name input → Date selection → Save → Return to tournament list
+- **Progression**: Tournament name input → Date selection → Round configuration (1-4 rounds) → Save → Return to tournament list
 - **Success criteria**: Tournament appears in list and can be selected for setup
 
 ### Team Registration & Formation
@@ -27,25 +27,32 @@ A comprehensive digital platform for organizing and managing friendly 2v2 soccer
 - **Success criteria**: All players assigned to teams, no duplicates, balanced distribution
 
 ### Fixture Generation
-- **Functionality**: Automatically create tournament brackets and match schedules
-- **Purpose**: Ensure fair play with proper round-robin or elimination format
+- **Functionality**: Automatically create tournament brackets and match schedules with configurable rounds
+- **Purpose**: Ensure fair play with proper round-robin format for specified number of rounds
 - **Trigger**: Complete team setup → Generate fixtures
-- **Progression**: Review team list → Generate fixture algorithm → Display match schedule → Confirm
-- **Success criteria**: All teams have appropriate number of matches, no conflicts
+- **Progression**: Review team list → Select number of rounds → Generate fixture algorithm → Display match schedule → Confirm
+- **Success criteria**: All teams have appropriate number of matches based on rounds, no conflicts
 
 ### Live Match Tracking
-- **Functionality**: Real-time scoring with stopwatch, goal tracking, and player attribution
-- **Purpose**: Accurate match recording and engaging live experience
+- **Functionality**: Real-time scoring with stopwatch, goal tracking, player attribution, and match comments
+- **Purpose**: Accurate match recording and engaging live experience with contextual notes
 - **Trigger**: Select active match from fixtures
-- **Progression**: Start match timer → Record goals with player selection → Track time → End match → Save results
-- **Success criteria**: Match results saved correctly, statistics updated automatically
+- **Progression**: Start match timer → Record goals with player selection → Track time → Add match comments → End match → Save results
+- **Success criteria**: Match results saved correctly, statistics updated automatically, comments preserved
 
 ### Statistics & Tables
-- **Functionality**: League tables, top scorers, team performance analytics
-- **Purpose**: Provide competitive insights and tournament progression visibility
+- **Functionality**: League tables, top scorers, team performance analytics, and fun facts with individual tournament selection
+- **Purpose**: Provide competitive insights and tournament progression visibility with detailed historical analysis
 - **Trigger**: Navigate to Stats section from main menu
-- **Progression**: View league table → Check top scorers → Review team statistics
-- **Success criteria**: Accurate calculations, real-time updates after matches
+- **Progression**: Select tournament view → View league table → Check top scorers → Review team statistics → Explore fun facts
+- **Success criteria**: Accurate calculations, real-time updates after matches, full team name visibility in tables
+
+### Fun Facts & Records
+- **Functionality**: Displays interesting tournament statistics like earliest/latest goals, highest-scoring matches, most goals by a player in one match, longest/shortest matches
+- **Purpose**: Add entertainment value and celebrate memorable moments from tournaments
+- **Trigger**: Automatically displayed in Statistics section when data is available
+- **Progression**: View current or historical tournament data → See calculated fun facts → Compare across tournaments
+- **Success criteria**: Accurate calculations, engaging presentation, historical comparison capabilities
 
 ## Edge Case Handling
 - **Odd Player Count**: Automatically create bye system or suggest additional player

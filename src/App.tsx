@@ -16,6 +16,7 @@ export interface Tournament {
   status: 'setup' | 'active' | 'completed'
   teams: Team[]
   fixtures: Match[]
+  rounds: number
 }
 
 export interface Team {
@@ -51,6 +52,7 @@ export interface Match {
   round: number
   duration: number
   goals: Goal[]
+  comments: string
 }
 
 export interface Goal {
@@ -74,7 +76,8 @@ function App() {
       date: '',
       status: 'setup',
       teams: [],
-      fixtures: []
+      fixtures: [],
+      rounds: 1
     }
     setSelectedTournament(newTournament)
     setCurrentView('setup')

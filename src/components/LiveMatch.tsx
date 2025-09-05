@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, Square, Plus, Minus } from "@phosphor-icons/react"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Play, Pause, Square, Plus, Minus, MessageSquare } from "@phosphor-icons/react"
 import { Tournament, Match, Goal, Player } from '../App'
 
 interface LiveMatchProps {
@@ -19,6 +21,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
   const [score1, setScore1] = useState(match.score1)
   const [score2, setScore2] = useState(match.score2)
   const [goals, setGoals] = useState<Goal[]>(match.goals)
+  const [comments, setComments] = useState(match.comments || '')
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -99,7 +102,8 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
       duration: time,
       score1,
       score2,
-      goals
+      goals,
+      comments: comments.trim()
     }
     
     onUpdateMatch(finalMatch)
@@ -286,6 +290,30 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
           </CardContent>
         </Card>
       )}
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            Match Comments
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="match-comments">Add comments about this match</Label>
+            <Textarea
+              id="match-comments"
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="e.g., Ended earlier due to rain, Great match with amazing saves..."
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground">
+              Comments will be saved when the match is ended
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
