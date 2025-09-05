@@ -206,7 +206,7 @@ function App() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={createNewTournament}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-green-100" onClick={createNewTournament}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Plus className="w-5 h-5" />
