@@ -140,7 +140,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                         </div>
                         
                         {match.status === 'completed' && (
-                          <div className="flex-shrink-0 text-center">
+                          <div className="flex-shrink-0 flex items-center">
                             <div className="text-lg sm:text-2xl font-bold bg-accent/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
                               {match.score1} - {match.score2}
                             </div>
