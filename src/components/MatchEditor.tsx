@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Save, X } from "@phosphor-icons/react"
+import { Plus, Save, X, Trash } from "@phosphor-icons/react"
 import { Tournament, Match, Goal, Player } from '../App'
 
 interface MatchEditorProps {
@@ -255,7 +255,7 @@ function MatchEditor({ match, tournament, onSave, onCancel }: MatchEditorProps) 
                     className="text-destructive hover:text-destructive self-center"
                     title="Delete goal"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash className="w-4 h-4" />
                   </Button>
                 </div>
               ))}
