@@ -306,8 +306,8 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 onKeyPress={(e) => e.key === 'Enter' && newPlayerName.trim() && addPlayer()}
               />
             </div>
-            <div className="flex flex-col items-center">
-              <Label htmlFor="player-hat" className="block text-center mb-2">Skill Level</Label>
+            <div>
+              <Label htmlFor="player-hat">Skill Level</Label>
               <Select value={newPlayerHat} onValueChange={(value: 'first' | 'second') => setNewPlayerHat(value)}>
                 <SelectTrigger id="player-hat" className="w-full">
                   <SelectValue placeholder="Select skill level" />
