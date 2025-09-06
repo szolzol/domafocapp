@@ -1,42 +1,47 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Play, Eye, ArrowCounterClockwise } from "@phosphor-icons/react"
-import { Tournament, Match, Team } from '../App'
-import { useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Play, Eye, RotateCcw } from "lucide-react";
+import { Tournament, Match, Team } from "../App";
+import { useEffect } from "react";
 
 interface FixturesProps {
-  tournament: Tournament
-  onStartMatch: (match: Match) => void
-  onUpdateTournament: (tournament: Tournament) => void
-  onEditMatch?: (match: Match) => void
+  tournament: Tournament;
+  onStartMatch: (match: Match) => void;
+  onUpdateTournament: (tournament: Tournament) => void;
+  onEditMatch?: (match: Match) => void;
 }
 
-function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }: FixturesProps) {
+function Fixtures({
+  tournament,
+  onStartMatch,
+  onUpdateTournament,
+  onEditMatch,
+}: FixturesProps) {
   const rematchGame = (match: Match) => {
     const resetMatch: Match = {
       ...match,
-      status: 'pending',
+      status: "pending",
       score1: 0,
       score2: 0,
       duration: 0,
       goals: [],
-      comments: ''
-    }
-    
+      comments: "",
+    };
+
     const updatedTournament = {
       ...tournament,
-      status: 'active' as const, // Set back to active when rematching
-      fixtures: tournament.fixtures.map(m => 
+      status: "active" as const, // Set back to active when rematching
+      fixtures: tournament.fixtures.map((m) =>
         m.id === match.id ? resetMatch : m
-      )
-    }
-    
-    onUpdateTournament(updatedTournament)
-  }
+      ),
+    };
+
+    onUpdateTournament(updatedTournament);
+  };
 
   const calculateLeagueTable = () => {
-    const table = tournament.teams.map(team => ({
+    const table = tournament.teams.map((team) => ({
       ...team,
       stats: {
         played: 0,
@@ -45,65 +50,68 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
         lost: 0,
         goalsFor: 0,
         goalsAgainst: 0,
-        points: 0
-      }
-    }))
+        points: 0,
+      },
+    }));
 
-    tournament.fixtures.forEach(match => {
-      if (match.status === 'completed') {
-        const team1Index = table.findIndex(t => t.id === match.team1.id)
-        const team2Index = table.findIndex(t => t.id === match.team2.id)
-        
+    tournament.fixtures.forEach((match) => {
+      if (match.status === "completed") {
+        const team1Index = table.findIndex((t) => t.id === match.team1.id);
+        const team2Index = table.findIndex((t) => t.id === match.team2.id);
+
         if (team1Index >= 0 && team2Index >= 0) {
-          table[team1Index].stats.played++
-          table[team2Index].stats.played++
-          table[team1Index].stats.goalsFor += match.score1
-          table[team1Index].stats.goalsAgainst += match.score2
-          table[team2Index].stats.goalsFor += match.score2
-          table[team2Index].stats.goalsAgainst += match.score1
+          table[team1Index].stats.played++;
+          table[team2Index].stats.played++;
+          table[team1Index].stats.goalsFor += match.score1;
+          table[team1Index].stats.goalsAgainst += match.score2;
+          table[team2Index].stats.goalsFor += match.score2;
+          table[team2Index].stats.goalsAgainst += match.score1;
 
           if (match.score1 > match.score2) {
-            table[team1Index].stats.won++
-            table[team1Index].stats.points += 3
-            table[team2Index].stats.lost++
+            table[team1Index].stats.won++;
+            table[team1Index].stats.points += 3;
+            table[team2Index].stats.lost++;
           } else if (match.score2 > match.score1) {
-            table[team2Index].stats.won++
-            table[team2Index].stats.points += 3
-            table[team1Index].stats.lost++
+            table[team2Index].stats.won++;
+            table[team2Index].stats.points += 3;
+            table[team1Index].stats.lost++;
           } else {
-            table[team1Index].stats.drawn++
-            table[team2Index].stats.drawn++
-            table[team1Index].stats.points += 1
-            table[team2Index].stats.points += 1
+            table[team1Index].stats.drawn++;
+            table[team2Index].stats.drawn++;
+            table[team1Index].stats.points += 1;
+            table[team2Index].stats.points += 1;
           }
         }
       }
-    })
+    });
 
     return table.sort((a, b) => {
-      if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points
-      const aGD = a.stats.goalsFor - a.stats.goalsAgainst
-      const bGD = b.stats.goalsFor - b.stats.goalsAgainst
-      if (bGD !== aGD) return bGD - aGD
-      return b.stats.goalsFor - a.stats.goalsFor
-    })
-  }
+      if (b.stats.points !== a.stats.points)
+        return b.stats.points - a.stats.points;
+      const aGD = a.stats.goalsFor - a.stats.goalsAgainst;
+      const bGD = b.stats.goalsFor - b.stats.goalsAgainst;
+      if (bGD !== aGD) return bGD - aGD;
+      return b.stats.goalsFor - a.stats.goalsFor;
+    });
+  };
 
-  const leagueTable = calculateLeagueTable()
-  const completedMatches = tournament.fixtures.filter(m => m.status === 'completed').length
-  const totalMatches = tournament.fixtures.length
-  const isComplete = completedMatches === totalMatches && totalMatches > 0
+  const leagueTable = calculateLeagueTable();
+  const completedMatches = tournament.fixtures.filter(
+    (m) => m.status === "completed"
+  ).length;
+  const totalMatches = tournament.fixtures.length;
+  const isComplete = completedMatches === totalMatches && totalMatches > 0;
 
   // Auto-update tournament status when all matches are completed
   useEffect(() => {
-    if (isComplete && tournament.status === 'active') {
+    if (isComplete && tournament.status === "active") {
       const updatedTournament = {
         ...tournament,
-        status: 'completed' as const
-      }
-      onUpdateTournament(updatedTournament)
+        status: "completed" as const,
+      };
+      onUpdateTournament(updatedTournament);
     }
-  }, [isComplete, tournament, onUpdateTournament])
+  }, [isComplete, tournament, onUpdateTournament]);
 
   return (
     <div className="space-y-6">
@@ -123,97 +131,110 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                 <div
                   key={match.id}
                   className={`p-4 rounded-lg border transition-colors ${
-                    match.status === 'completed' 
-                      ? 'bg-muted border-border' 
-                      : match.status === 'live'
-                      ? 'bg-accent/10 border-accent'
-                      : 'bg-card border-border hover:bg-muted/50'
-                  }`}
-                >
+                    match.status === "completed"
+                      ? "bg-muted border-border"
+                      : match.status === "live"
+                      ? "bg-accent/10 border-accent"
+                      : "bg-card border-border hover:bg-muted/50"
+                  }`}>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
                         <div className="flex items-center gap-2 sm:gap-4 flex-1 text-sm sm:text-base">
-                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">{match.team1.name}</span>
-                          <span className="text-muted-foreground text-xs sm:text-sm">vs</span>
-                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">{match.team2.name}</span>
+                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">
+                            {match.team1.name}
+                          </span>
+                          <span className="text-muted-foreground text-xs sm:text-sm">
+                            vs
+                          </span>
+                          <span className="font-medium truncate max-w-[120px] sm:max-w-none">
+                            {match.team2.name}
+                          </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant={
-                          match.status === 'pending' ? 'secondary' :
-                          match.status === 'live' ? 'default' : 'outline'
-                        }>
+                        <Badge
+                          variant={
+                            match.status === "pending"
+                              ? "secondary"
+                              : match.status === "live"
+                              ? "default"
+                              : "outline"
+                          }>
                           {match.status}
                         </Badge>
-                        
+
                         <Badge variant="outline">Round {match.round}</Badge>
-                        
+
                         {tournament.hasHalfTime && (
-                          <Badge variant="outline" className="text-xs">With Half-Time</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            With Half-Time
+                          </Badge>
                         )}
-                        
-                        {match.status === 'completed' && (
-                          <span className="text-xs sm:text-sm">{Math.floor(match.duration / 60)}:{(match.duration % 60).toString().padStart(2, '0')} duration</span>
+
+                        {match.status === "completed" && (
+                          <span className="text-xs sm:text-sm">
+                            {Math.floor(match.duration / 60)}:
+                            {(match.duration % 60).toString().padStart(2, "0")}{" "}
+                            duration
+                          </span>
                         )}
-                        
+
                         {match.comments && (
-                          <span className="italic text-xs sm:text-sm truncate max-w-[200px]">"{match.comments}"</span>
+                          <span className="italic text-xs sm:text-sm truncate max-w-[200px]">
+                            "{match.comments}"
+                          </span>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-                      {match.status === 'completed' && (
+                      {match.status === "completed" && (
                         <div className="text-lg sm:text-2xl font-bold bg-accent/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
                           {match.score1} - {match.score2}
                         </div>
                       )}
-                      
+
                       <div className="flex gap-2 flex-1 sm:flex-none">
-                        {match.status === 'pending' && (
-                          <Button 
+                        {match.status === "pending" && (
+                          <Button
                             size="sm"
                             onClick={() => onStartMatch(match)}
-                            className="flex-1 sm:flex-none"
-                          >
+                            className="flex-1 sm:flex-none">
                             <Play className="w-4 h-4 mr-1" />
                             Start
                           </Button>
                         )}
-                        
-                        {match.status === 'live' && (
-                          <Button 
+
+                        {match.status === "live" && (
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => onStartMatch(match)}
-                            className="flex-1 sm:flex-none"
-                          >
+                            className="flex-1 sm:flex-none">
                             <Eye className="w-4 h-4 mr-1" />
                             View Live
                           </Button>
                         )}
-                        
-                        {match.status === 'completed' && (
+
+                        {match.status === "completed" && (
                           <>
                             {onEditMatch && (
-                              <Button 
+                              <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => onEditMatch(match)}
-                                className="flex-1 sm:flex-none"
-                              >
+                                className="flex-1 sm:flex-none">
                                 Edit
                               </Button>
                             )}
-                            <Button 
+                            <Button
                               size="sm"
                               variant="outline"
                               onClick={() => rematchGame(match)}
-                              className="text-accent hover:text-accent hover:bg-accent/10 flex-1 sm:flex-none"
-                            >
-                              <ArrowCounterClockwise className="w-4 h-4 mr-1" />
+                              className="text-accent hover:text-accent hover:bg-accent/10 flex-1 sm:flex-none">
+                              <RotateCcw className="w-4 h-4 mr-1" />
                               Rematch
                             </Button>
                           </>
@@ -223,7 +244,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                   </div>
                 </div>
               ))}
-              
+
               {tournament.fixtures.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   No fixtures generated yet. Complete tournament setup first.
@@ -249,22 +270,30 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
                   <span className="text-center w-8">L</span>
                   <span className="text-center w-10">Pts</span>
                 </div>
-                
+
                 {leagueTable.map((team, index) => (
-                  <div key={team.id} className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-1 sm:gap-2 py-1.5 text-sm items-center">
+                  <div
+                    key={team.id}
+                    className="grid grid-cols-[auto_1fr_auto_auto_auto_auto_auto] gap-1 sm:gap-2 py-1.5 text-sm items-center">
                     <span className="text-muted-foreground font-mono text-xs w-6">
                       {index + 1}.
                     </span>
-                    <span className="font-medium truncate min-w-0" title={team.name}>{team.name}</span>
+                    <span
+                      className="font-medium truncate min-w-0"
+                      title={team.name}>
+                      {team.name}
+                    </span>
                     <span className="text-center w-8">{team.stats.played}</span>
                     <span className="text-center w-8">{team.stats.won}</span>
                     <span className="text-center w-8">{team.stats.drawn}</span>
                     <span className="text-center w-8">{team.stats.lost}</span>
-                    <span className="text-center font-bold w-10">{team.stats.points}</span>
+                    <span className="text-center font-bold w-10">
+                      {team.stats.points}
+                    </span>
                   </div>
                 ))}
               </div>
-              
+
               {leagueTable.length === 0 && (
                 <div className="text-center py-4 text-muted-foreground text-sm">
                   Table will update as matches are completed
@@ -272,17 +301,21 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
               )}
             </CardContent>
           </Card>
-          
+
           {isComplete && (
             <Card className="mt-4">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-accent">🏆 Tournament Complete!</CardTitle>
+                <CardTitle className="text-lg text-accent">
+                  🏆 Tournament Complete!
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Winner:</span>
-                    <span className="font-bold text-accent">{leagueTable[0]?.name}</span>
+                    <span className="font-bold text-accent">
+                      {leagueTable[0]?.name}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Points:</span>
@@ -295,7 +328,7 @@ function Fixtures({ tournament, onStartMatch, onUpdateTournament, onEditMatch }:
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Fixtures
+export default Fixtures;

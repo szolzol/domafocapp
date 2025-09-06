@@ -1,212 +1,269 @@
-import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Plus, Calendar, Users, Trophy, BarChart3, Trash, Upload } from "@phosphor-icons/react"
-import { Toaster } from 'sonner'
-import { toast } from 'sonner'
-import TournamentSetup from '@/components/TournamentSetup'
-import Fixtures from '@/components/Fixtures'
-import LiveMatch from '@/components/LiveMatch'
-import MatchEditor from '@/components/MatchEditor'
-import Statistics from '@/components/Statistics'
-import DataImporter from '@/components/DataImporter'
-import soccerBallImage from '@/assets/images/soccer_ball.png'
+import { useState } from "react";
+// Temporarily using localStorage fallback due to GitHub Spark rate limiting
+// import { useKV } from "@github/spark/hooks";
+import { useKVFallback } from "@/hooks/usePersistentStorage";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  Calendar,
+  Users,
+  Trophy,
+  BarChart3,
+  Trash,
+  Upload,
+} from "lucide-react";
+import { Toaster } from "sonner";
+import { toast } from "sonner";
+import TournamentSetup from "@/components/TournamentSetup";
+import Fixtures from "@/components/Fixtures";
+import LiveMatch from "@/components/LiveMatch";
+import MatchEditor from "@/components/MatchEditor";
+import Statistics from "@/components/Statistics";
+import DataImporter from "@/components/DataImporter";
+import soccerBallImage from "@/assets/images/soccer_ball.png";
 
 export interface Tournament {
-  id: string
-  name: string
-  date: string
-  status: 'setup' | 'active' | 'completed'
-  teams: Team[]
-  fixtures: Match[]
-  rounds: number
-  teamSize: number // 2v2, 3v3, 4v4, 5v5, 6v6
-  hasHalfTime: boolean // Whether matches have half-time breaks
+  id: string;
+  name: string;
+  date: string;
+  status: "setup" | "active" | "completed";
+  teams: Team[];
+  fixtures: Match[];
+  rounds: number;
+  teamSize: number; // 2v2, 3v3, 4v4, 5v5, 6v6
+  hasHalfTime: boolean; // Whether matches have half-time breaks
 }
 
 export interface Team {
-  id: string
-  name: string
-  players: Player[]
+  id: string;
+  name: string;
+  players: Player[];
   stats: {
-    played: number
-    won: number
-    drawn: number
-    lost: number
-    goalsFor: number
-    goalsAgainst: number
-    points: number
-  }
+    played: number;
+    won: number;
+    drawn: number;
+    lost: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    points: number;
+  };
 }
 
 export interface Player {
-  id: string
-  name: string
-  alias: string
-  goals: number
-  hat: 'first' | 'second' // first = strong, second = weak
+  id: string;
+  name: string;
+  alias: string;
+  goals: number;
+  hat: "first" | "second"; // first = strong, second = weak
 }
 
 export interface Match {
-  id: string
-  team1: Team
-  team2: Team
-  score1: number
-  score2: number
-  status: 'pending' | 'live' | 'completed'
-  round: number
-  duration: number
-  goals: Goal[]
-  comments: string
+  id: string;
+  team1: Team;
+  team2: Team;
+  score1: number;
+  score2: number;
+  status: "pending" | "live" | "completed";
+  round: number;
+  duration: number;
+  goals: Goal[];
+  comments: string;
 }
 
 export interface Goal {
-  id: string
-  playerId: string
-  playerName: string
-  teamId: string
-  minute: number
+  id: string;
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  minute: number;
 }
 
 function App() {
-  const [tournaments, setTournaments] = useKV("tournaments", [] as Tournament[])
-  const [currentView, setCurrentView] = useState<'home' | 'setup' | 'fixtures' | 'match' | 'edit' | 'stats'>('home')
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{open: boolean, tournamentId: string, tournamentName: string}>({
+  const [tournamentsJSON, setTournamentsJSON] = useKVFallback(
+    "tournaments",
+    "[]"
+  );
+  const tournaments: Tournament[] = tournamentsJSON ? JSON.parse(tournamentsJSON) : [];
+  const setTournaments = (newTournaments: Tournament[] | ((current: Tournament[]) => Tournament[])) => {
+    const tournamentsToSet = typeof newTournaments === 'function' ? newTournaments(tournaments) : newTournaments;
+    setTournamentsJSON(JSON.stringify(tournamentsToSet));
+  };
+  
+  const [currentView, setCurrentView] = useState<
+    "home" | "setup" | "fixtures" | "match" | "edit" | "stats"
+  >("home");
+  const [selectedTournament, setSelectedTournament] =
+    useState<Tournament | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    open: boolean;
+    tournamentId: string;
+    tournamentName: string;
+  }>({
     open: false,
-    tournamentId: '',
-    tournamentName: ''
-  })
-  const [deleteText, setDeleteText] = useState('')
-  const [showImporter, setShowImporter] = useState(false)
+    tournamentId: "",
+    tournamentName: "",
+  });
+  const [deleteText, setDeleteText] = useState("");
+  const [showImporter, setShowImporter] = useState(false);
 
   const createNewTournament = () => {
     const newTournament: Tournament = {
       id: Date.now().toString(),
-      name: '',
-      date: '',
-      status: 'setup',
+      name: "",
+      date: "",
+      status: "setup",
       teams: [],
       fixtures: [],
       rounds: 1,
       teamSize: 2, // Default to 2v2
-      hasHalfTime: false // Default to no half-time
-    }
-    setSelectedTournament(newTournament)
-    setCurrentView('setup')
-  }
+      hasHalfTime: false, // Default to no half-time
+    };
+    setSelectedTournament(newTournament);
+    setCurrentView("setup");
+  };
 
   const saveTournament = (tournament: Tournament) => {
-    setTournaments(currentTournaments => {
-      const existingIndex = currentTournaments.findIndex(t => t.id === tournament.id)
+    setTournaments((currentTournaments) => {
+      const existingIndex = currentTournaments.findIndex(
+        (t) => t.id === tournament.id
+      );
       if (existingIndex >= 0) {
-        const updated = [...currentTournaments]
-        updated[existingIndex] = tournament
-        return updated
+        const updated = [...currentTournaments];
+        updated[existingIndex] = tournament;
+        return updated;
       } else {
-        return [...currentTournaments, tournament]
+        return [...currentTournaments, tournament];
       }
-    })
-    setSelectedTournament(tournament)
-  }
+    });
+    setSelectedTournament(tournament);
+  };
 
   const selectTournament = (tournament: Tournament) => {
-    setSelectedTournament(tournament)
-    if (tournament.status === 'setup') {
-      setCurrentView('setup')
+    setSelectedTournament(tournament);
+    if (tournament.status === "setup") {
+      setCurrentView("setup");
     } else {
-      setCurrentView('fixtures')
+      setCurrentView("fixtures");
     }
-  }
+  };
 
   const startMatch = (match: Match) => {
-    setSelectedMatch(match)
-    setCurrentView('match')
-  }
+    setSelectedMatch(match);
+    setCurrentView("match");
+  };
 
   const editMatch = (match: Match) => {
-    setSelectedMatch(match)
-    setCurrentView('edit')
-  }
+    setSelectedMatch(match);
+    setCurrentView("edit");
+  };
 
   const deleteTournament = (tournamentId: string) => {
-    setTournaments(currentTournaments => 
-      currentTournaments.filter(t => t.id !== tournamentId)
-    )
-    
+    setTournaments((currentTournaments) =>
+      currentTournaments.filter((t) => t.id !== tournamentId)
+    );
+
     // If we're viewing the deleted tournament, go back to home
     if (selectedTournament?.id === tournamentId) {
-      setSelectedTournament(null)
-      setCurrentView('home')
+      setSelectedTournament(null);
+      setCurrentView("home");
     }
-    
-    // Reset delete confirmation state
-    setDeleteConfirmation({open: false, tournamentId: '', tournamentName: ''})
-    setDeleteText('')
-    
-    toast.success('Tournament deleted successfully')
-  }
 
-  const openDeleteConfirmation = (tournamentId: string, tournamentName: string) => {
+    // Reset delete confirmation state
+    setDeleteConfirmation({
+      open: false,
+      tournamentId: "",
+      tournamentName: "",
+    });
+    setDeleteText("");
+
+    toast.success("Tournament deleted successfully");
+  };
+
+  const openDeleteConfirmation = (
+    tournamentId: string,
+    tournamentName: string
+  ) => {
     setDeleteConfirmation({
       open: true,
       tournamentId,
-      tournamentName
-    })
-    setDeleteText('')
-  }
+      tournamentName,
+    });
+    setDeleteText("");
+  };
 
   const closeDeleteConfirmation = () => {
-    setDeleteConfirmation({open: false, tournamentId: '', tournamentName: ''})
-    setDeleteText('')
-  }
+    setDeleteConfirmation({
+      open: false,
+      tournamentId: "",
+      tournamentName: "",
+    });
+    setDeleteText("");
+  };
 
   const confirmDelete = () => {
-    if (deleteText === 'DELETE') {
-      deleteTournament(deleteConfirmation.tournamentId)
+    if (deleteText === "DELETE") {
+      deleteTournament(deleteConfirmation.tournamentId);
     }
-  }
+  };
 
   const updateMatch = (updatedMatch: Match) => {
-    if (!selectedTournament) return
-    
+    if (!selectedTournament) return;
+
     const updatedTournament = {
       ...selectedTournament,
-      fixtures: selectedTournament.fixtures.map(m => 
+      fixtures: selectedTournament.fixtures.map((m) =>
         m.id === updatedMatch.id ? updatedMatch : m
-      )
-    }
-    
-    saveTournament(updatedTournament)
-    setSelectedMatch(updatedMatch)
-  }
+      ),
+    };
+
+    saveTournament(updatedTournament);
+    setSelectedMatch(updatedMatch);
+  };
 
   const handleImportTournaments = (importedTournaments: Tournament[]) => {
-    setTournaments(currentTournaments => [...currentTournaments, ...importedTournaments])
-    setShowImporter(false)
-  }
+    setTournaments((currentTournaments) => [
+      ...currentTournaments,
+      ...importedTournaments,
+    ]);
+    setShowImporter(false);
+  };
 
   const renderHomeScreen = () => (
     <div className="min-h-screen p-4 sm:p-6 bg-slate-100">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-16 h-16 flex items-center justify-center">
-            <img src={soccerBallImage} alt="Soccer Ball" className="w-16 h-12 object-contain" />
+            <img
+              src={soccerBallImage}
+              alt="Soccer Ball"
+              className="w-16 h-12 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
-            <p className="text-muted-foreground">Friendly Football Tournament Manager</p>
+            <p className="text-muted-foreground">
+              Friendly Football Tournament Manager
+            </p>
           </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={createNewTournament}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={createNewTournament}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Plus className="w-5 h-5" />
@@ -214,11 +271,15 @@ function App() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Start a new tournament</p>
+              <p className="text-sm text-muted-foreground">
+                Start a new tournament
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setCurrentView('stats')}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setCurrentView("stats")}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="w-5 h-5" />
@@ -226,11 +287,15 @@ function App() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">View tournament statistics</p>
+              <p className="text-sm text-muted-foreground">
+                View tournament statistics
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowImporter(true)}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setShowImporter(true)}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Upload className="w-5 h-5" />
@@ -238,7 +303,9 @@ function App() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">Import from Excel/CSV</p>
+              <p className="text-sm text-muted-foreground">
+                Import from Excel/CSV
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -249,39 +316,47 @@ function App() {
             <Card>
               <CardContent className="py-8 text-center">
                 <Trophy className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No tournaments yet. Create your first tournament to get started!</p>
+                <p className="text-muted-foreground">
+                  No tournaments yet. Create your first tournament to get
+                  started!
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {tournaments.map(tournament => (
-                <Card 
-                  key={tournament.id} 
+              {tournaments.map((tournament) => (
+                <Card
+                  key={tournament.id}
                   className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => selectTournament(tournament)}
-                >
+                  onClick={() => selectTournament(tournament)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg flex-1">
-                        {tournament.name || 'Unnamed Tournament'}
+                        {tournament.name || "Unnamed Tournament"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
-                        <Badge variant={
-                          tournament.status === 'setup' ? 'secondary' :
-                          tournament.status === 'active' ? 'default' : 'outline'
-                        }>
+                        <Badge
+                          variant={
+                            tournament.status === "setup"
+                              ? "secondary"
+                              : tournament.status === "active"
+                              ? "default"
+                              : "outline"
+                          }>
                           {tournament.status}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation()
-                            openDeleteConfirmation(tournament.id, tournament.name || 'Unnamed Tournament')
+                            e.stopPropagation();
+                            openDeleteConfirmation(
+                              tournament.id,
+                              tournament.name || "Unnamed Tournament"
+                            );
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          title="Delete tournament"
-                        >
+                          title="Delete tournament">
                           <Trash className="w-4 h-4" />
                         </Button>
                       </div>
@@ -291,7 +366,7 @@ function App() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {tournament.date || 'No date set'}
+                        {tournament.date || "No date set"}
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
@@ -307,12 +382,16 @@ function App() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirmation.open} onOpenChange={closeDeleteConfirmation}>
+      <Dialog
+        open={deleteConfirmation.open}
+        onOpenChange={closeDeleteConfirmation}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Tournament</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteConfirmation.tournamentName}"? This action cannot be undone.
+              Are you sure you want to delete "
+              {deleteConfirmation.tournamentName}"? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -331,11 +410,10 @@ function App() {
             <Button variant="outline" onClick={closeDeleteConfirmation}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={confirmDelete}
-              disabled={deleteText !== 'DELETE'}
-            >
+              disabled={deleteText !== "DELETE"}>
               Delete Tournament
             </Button>
           </DialogFooter>
@@ -349,48 +427,48 @@ function App() {
         onImport={handleImportTournaments}
       />
     </div>
-  )
+  );
 
-  if (currentView === 'home') return renderHomeScreen()
+  if (currentView === "home") return renderHomeScreen();
 
   return (
     <>
       <div className="min-h-screen bg-background">
         <header className="bg-card border-b border-border px-4 sm:px-6 py-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => {
-                setCurrentView('home')
-                setSelectedTournament(null)
-                setSelectedMatch(null)
+                setCurrentView("home");
+                setSelectedTournament(null);
+                setSelectedMatch(null);
               }}
-              className="text-lg font-semibold self-start"
-            >
+              className="text-lg font-semibold self-start">
               ← DomaFocApp
             </Button>
-            
+
             {selectedTournament && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">{selectedTournament.name || 'Unnamed Tournament'}</h1>
-
+                  <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[200px] sm:max-w-none">
+                    {selectedTournament.name || "Unnamed Tournament"}
+                  </h1>
                 </div>
                 <div className="flex gap-2">
-                  {selectedTournament.status !== 'setup' && (
+                  {selectedTournament.status !== "setup" && (
                     <>
                       <Button
-                        variant={currentView === 'fixtures' ? 'default' : 'ghost'}
+                        variant={
+                          currentView === "fixtures" ? "default" : "ghost"
+                        }
                         size="sm"
-                        onClick={() => setCurrentView('fixtures')}
-                      >
+                        onClick={() => setCurrentView("fixtures")}>
                         Fixtures
                       </Button>
                       <Button
-                        variant={currentView === 'stats' ? 'default' : 'ghost'}
+                        variant={currentView === "stats" ? "default" : "ghost"}
                         size="sm"
-                        onClick={() => setCurrentView('stats')}
-                      >
+                        onClick={() => setCurrentView("stats")}>
                         Stats
                       </Button>
                     </>
@@ -402,18 +480,18 @@ function App() {
         </header>
 
         <main className="max-w-6xl mx-auto p-4 sm:p-6 pb-8 sm:pb-6">
-          {currentView === 'setup' && selectedTournament && (
+          {currentView === "setup" && selectedTournament && (
             <TournamentSetup
               tournament={selectedTournament}
               onSave={saveTournament}
               onComplete={(tournament) => {
-                saveTournament(tournament)
-                setCurrentView('fixtures')
+                saveTournament(tournament);
+                setCurrentView("fixtures");
               }}
             />
           )}
 
-          {currentView === 'fixtures' && selectedTournament && (
+          {currentView === "fixtures" && selectedTournament && (
             <Fixtures
               tournament={selectedTournament}
               onStartMatch={startMatch}
@@ -422,28 +500,28 @@ function App() {
             />
           )}
 
-          {currentView === 'match' && selectedMatch && selectedTournament && (
+          {currentView === "match" && selectedMatch && selectedTournament && (
             <LiveMatch
               match={selectedMatch}
               tournament={selectedTournament}
               onUpdateMatch={updateMatch}
-              onEndMatch={() => setCurrentView('fixtures')}
+              onEndMatch={() => setCurrentView("fixtures")}
             />
           )}
 
-          {currentView === 'edit' && selectedMatch && selectedTournament && (
+          {currentView === "edit" && selectedMatch && selectedTournament && (
             <MatchEditor
               match={selectedMatch}
               tournament={selectedTournament}
               onSave={(updatedMatch) => {
-                updateMatch(updatedMatch)
-                setCurrentView('fixtures')
+                updateMatch(updatedMatch);
+                setCurrentView("fixtures");
               }}
-              onCancel={() => setCurrentView('fixtures')}
+              onCancel={() => setCurrentView("fixtures")}
             />
           )}
 
-          {currentView === 'stats' && (
+          {currentView === "stats" && (
             <Statistics
               tournaments={tournaments}
               selectedTournament={selectedTournament}
@@ -451,19 +529,19 @@ function App() {
           )}
         </main>
       </div>
-      
-      <Toaster 
+
+      <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            background: 'hsl(var(--background))',
-            color: 'hsl(var(--foreground))',
-            border: '1px solid hsl(var(--border))',
-          }
+            background: "hsl(var(--background))",
+            color: "hsl(var(--foreground))",
+            border: "1px solid hsl(var(--border))",
+          },
         }}
       />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

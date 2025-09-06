@@ -1,120 +1,156 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Plus, Trash, Users, Shuffle, Edit2 } from "@phosphor-icons/react"
-import { Tournament, Team, Player } from '../App'
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash, Users, Shuffle, Edit } from "lucide-react";
+import { Tournament, Team, Player, Match } from "../App";
 
 interface TournamentSetupProps {
-  tournament: Tournament
-  onSave: (tournament: Tournament) => void
-  onComplete: (tournament: Tournament) => void
+  tournament: Tournament;
+  onSave: (tournament: Tournament) => void;
+  onComplete: (tournament: Tournament) => void;
 }
 
-function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProps) {
-  const [name, setName] = useState(tournament.name)
-  const [date, setDate] = useState(tournament.date)
-  const [rounds, setRounds] = useState(tournament.rounds || 1)
-  const [teamSize, setTeamSize] = useState(tournament.teamSize || 2)
-  const [hasHalfTime, setHasHalfTime] = useState(tournament.hasHalfTime || false)
-  const [players, setPlayers] = useState<Array<{name: string, hat: 'first' | 'second'}>>([])
-  const [teams, setTeams] = useState<Team[]>(tournament.teams)
-  const [newPlayerName, setNewPlayerName] = useState('')
-  const [newPlayerHat, setNewPlayerHat] = useState<'first' | 'second'>('first')
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null)
-  const [editTeamName, setEditTeamName] = useState('')
-  const [editPlayerAliases, setEditPlayerAliases] = useState<{[playerId: string]: string}>({})
+function TournamentSetup({
+  tournament,
+  onSave,
+  onComplete,
+}: TournamentSetupProps) {
+  const [name, setName] = useState(tournament.name);
+  const [date, setDate] = useState(tournament.date);
+  const [rounds, setRounds] = useState(tournament.rounds || 1);
+  const [teamSize, setTeamSize] = useState(tournament.teamSize || 2);
+  const [hasHalfTime, setHasHalfTime] = useState(
+    tournament.hasHalfTime || false
+  );
+  const [players, setPlayers] = useState<
+    Array<{ name: string; hat: "first" | "second" }>
+  >([]);
+  const [teams, setTeams] = useState<Team[]>(tournament.teams);
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [newPlayerHat, setNewPlayerHat] = useState<"first" | "second">("first");
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [editTeamName, setEditTeamName] = useState("");
+  const [editPlayerAliases, setEditPlayerAliases] = useState<{
+    [playerId: string]: string;
+  }>({});
 
   const addPlayer = () => {
     if (newPlayerName.trim()) {
-      setPlayers(current => [...current, { name: newPlayerName.trim(), hat: newPlayerHat }])
-      setNewPlayerName('')
-      setNewPlayerHat('first')
+      setPlayers((current) => [
+        ...current,
+        { name: newPlayerName.trim(), hat: newPlayerHat },
+      ]);
+      setNewPlayerName("");
+      setNewPlayerHat("first");
     }
-  }
+  };
 
   const removePlayer = (index: number) => {
-    setPlayers(current => current.filter((_, i) => i !== index))
-  }
+    setPlayers((current) => current.filter((_, i) => i !== index));
+  };
 
   const generateTeams = () => {
-    if (players.length < teamSize) return
-    
+    if (players.length < teamSize) return;
+
     // Separate players by hat (skill level)
-    const firstHat = players.filter(p => p.hat === 'first')
-    const secondHat = players.filter(p => p.hat === 'second')
-    
+    const firstHat = players.filter((p) => p.hat === "first");
+    const secondHat = players.filter((p) => p.hat === "second");
+
     // Shuffle each group
-    const shuffledFirst = [...firstHat].sort(() => Math.random() - 0.5)
-    const shuffledSecond = [...secondHat].sort(() => Math.random() - 0.5)
-    
-    const newTeams: Team[] = []
-    const numTeams = Math.floor(players.length / teamSize)
-    
+    const shuffledFirst = [...firstHat].sort(() => Math.random() - 0.5);
+    const shuffledSecond = [...secondHat].sort(() => Math.random() - 0.5);
+
+    const newTeams: Team[] = [];
+    const numTeams = Math.floor(players.length / teamSize);
+
     // Calculate how many strong/weak players per team to aim for
-    const totalFirstHat = firstHat.length
-    const totalSecondHat = secondHat.length
-    const idealFirstPerTeam = Math.floor(totalFirstHat / numTeams)
-    const idealSecondPerTeam = Math.floor(totalSecondHat / numTeams)
-    
-    let firstHatIndex = 0
-    let secondHatIndex = 0
-    
+    const totalFirstHat = firstHat.length;
+    const totalSecondHat = secondHat.length;
+    const idealFirstPerTeam = Math.floor(totalFirstHat / numTeams);
+    const idealSecondPerTeam = Math.floor(totalSecondHat / numTeams);
+
+    let firstHatIndex = 0;
+    let secondHatIndex = 0;
+
     // Create balanced teams
     for (let i = 0; i < numTeams; i++) {
-      const teamPlayers: Player[] = []
-      
+      const teamPlayers: Player[] = [];
+
       // Add strong players first (try to distribute evenly)
-      let firstPlayersForThisTeam = idealFirstPerTeam
+      let firstPlayersForThisTeam = idealFirstPerTeam;
       if (i < totalFirstHat % numTeams) {
-        firstPlayersForThisTeam++ // Some teams get one extra strong player
+        firstPlayersForThisTeam++; // Some teams get one extra strong player
       }
-      
-      for (let j = 0; j < firstPlayersForThisTeam && firstHatIndex < shuffledFirst.length; j++) {
+
+      for (
+        let j = 0;
+        j < firstPlayersForThisTeam && firstHatIndex < shuffledFirst.length;
+        j++
+      ) {
         teamPlayers.push({
           id: `${Date.now()}_${i}_${j}_first`,
           name: shuffledFirst[firstHatIndex].name,
           alias: shuffledFirst[firstHatIndex].name,
           goals: 0,
-          hat: shuffledFirst[firstHatIndex].hat
-        })
-        firstHatIndex++
+          hat: shuffledFirst[firstHatIndex].hat,
+        });
+        firstHatIndex++;
       }
-      
+
       // Add weak players to fill the team
-      let secondPlayersForThisTeam = teamSize - teamPlayers.length
-      
-      for (let j = 0; j < secondPlayersForThisTeam && secondHatIndex < shuffledSecond.length; j++) {
+      let secondPlayersForThisTeam = teamSize - teamPlayers.length;
+
+      for (
+        let j = 0;
+        j < secondPlayersForThisTeam && secondHatIndex < shuffledSecond.length;
+        j++
+      ) {
         teamPlayers.push({
           id: `${Date.now()}_${i}_${j}_second`,
           name: shuffledSecond[secondHatIndex].name,
           alias: shuffledSecond[secondHatIndex].name,
           goals: 0,
-          hat: shuffledSecond[secondHatIndex].hat
-        })
-        secondHatIndex++
+          hat: shuffledSecond[secondHatIndex].hat,
+        });
+        secondHatIndex++;
       }
-      
+
       // If we still need players and have remaining first hat players, add them
-      while (teamPlayers.length < teamSize && firstHatIndex < shuffledFirst.length) {
+      while (
+        teamPlayers.length < teamSize &&
+        firstHatIndex < shuffledFirst.length
+      ) {
         teamPlayers.push({
           id: `${Date.now()}_${i}_extra_first`,
           name: shuffledFirst[firstHatIndex].name,
           alias: shuffledFirst[firstHatIndex].name,
           goals: 0,
-          hat: shuffledFirst[firstHatIndex].hat
-        })
-        firstHatIndex++
+          hat: shuffledFirst[firstHatIndex].hat,
+        });
+        firstHatIndex++;
       }
-      
+
       // Final shuffle within the team to randomize positions
-      teamPlayers.sort(() => Math.random() - 0.5)
-      
+      teamPlayers.sort(() => Math.random() - 0.5);
+
       if (teamPlayers.length === teamSize) {
         newTeams.push({
           id: `team_${Date.now()}_${i}`,
@@ -127,54 +163,54 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             lost: 0,
             goalsFor: 0,
             goalsAgainst: 0,
-            points: 0
-          }
-        })
+            points: 0,
+          },
+        });
       }
     }
-    
-    setTeams(newTeams)
-  }
+
+    setTeams(newTeams);
+  };
 
   const openTeamEditor = (team: Team) => {
-    setEditingTeam(team)
-    setEditTeamName(team.name)
-    const aliases: {[playerId: string]: string} = {}
-    team.players.forEach(player => {
-      aliases[player.id] = player.alias
-    })
-    setEditPlayerAliases(aliases)
-  }
+    setEditingTeam(team);
+    setEditTeamName(team.name);
+    const aliases: { [playerId: string]: string } = {};
+    team.players.forEach((player) => {
+      aliases[player.id] = player.alias;
+    });
+    setEditPlayerAliases(aliases);
+  };
 
   const saveTeamEdits = () => {
-    if (!editingTeam) return
-    
-    const updatedTeams = teams.map(team => {
+    if (!editingTeam) return;
+
+    const updatedTeams = teams.map((team) => {
       if (team.id === editingTeam.id) {
         return {
           ...team,
           name: editTeamName.trim() || team.name,
-          players: team.players.map(player => ({
+          players: team.players.map((player) => ({
             ...player,
-            alias: editPlayerAliases[player.id] || player.alias
-          }))
-        }
+            alias: editPlayerAliases[player.id] || player.alias,
+          })),
+        };
       }
-      return team
-    })
-    
-    setTeams(updatedTeams)
-    setEditingTeam(null)
-    setEditTeamName('')
-    setEditPlayerAliases({})
-  }
+      return team;
+    });
 
-  const generateFixtures = () => {
-    if (teams.length < 2) return []
-    
-    const fixtures = []
-    let matchId = 1
-    
+    setTeams(updatedTeams);
+    setEditingTeam(null);
+    setEditTeamName("");
+    setEditPlayerAliases({});
+  };
+
+  const generateFixtures = (): Match[] => {
+    if (teams.length < 2) return [];
+
+    const fixtures: Match[] = [];
+    let matchId = 1;
+
     // Generate round-robin tournament for specified number of rounds
     for (let round = 1; round <= rounds; round++) {
       for (let i = 0; i < teams.length; i++) {
@@ -185,22 +221,22 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             team2: teams[j],
             score1: 0,
             score2: 0,
-            status: 'pending' as const,
+            status: "pending" as const,
             round: round,
             duration: 0,
             goals: [],
-            comments: ''
-          })
-          matchId++
+            comments: "",
+          });
+          matchId++;
         }
       }
     }
-    
-    return fixtures
-  }
+
+    return fixtures;
+  };
 
   const handleComplete = () => {
-    const fixtures = generateFixtures()
+    const fixtures = generateFixtures();
     const completedTournament: Tournament = {
       ...tournament,
       name: name.trim(),
@@ -210,15 +246,15 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
       hasHalfTime: hasHalfTime,
       teams,
       fixtures,
-      status: 'active'
-    }
-    
-    onComplete(completedTournament)
-  }
+      status: "active",
+    };
 
-  const canComplete = name.trim() && date && teams.length >= 2
-  const firstHatCount = players.filter(p => p.hat === 'first').length
-  const secondHatCount = players.filter(p => p.hat === 'second').length
+    onComplete(completedTournament);
+  };
+
+  const canComplete = name.trim() && date && teams.length >= 2;
+  const firstHatCount = players.filter((p) => p.hat === "first").length;
+  const secondHatCount = players.filter((p) => p.hat === "second").length;
 
   return (
     <div className="space-y-6">
@@ -247,21 +283,33 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
           </div>
           <div>
             <Label htmlFor="tournament-rounds">Number of Rounds</Label>
-            <Select value={rounds.toString()} onValueChange={(value) => setRounds(parseInt(value))}>
+            <Select
+              value={rounds.toString()}
+              onValueChange={(value) => setRounds(parseInt(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select number of rounds" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 Round (each team plays once)</SelectItem>
-                <SelectItem value="2">2 Rounds (each team plays twice)</SelectItem>
-                <SelectItem value="3">3 Rounds (each team plays three times)</SelectItem>
-                <SelectItem value="4">4 Rounds (each team plays four times)</SelectItem>
+                <SelectItem value="1">
+                  1 Round (each team plays once)
+                </SelectItem>
+                <SelectItem value="2">
+                  2 Rounds (each team plays twice)
+                </SelectItem>
+                <SelectItem value="3">
+                  3 Rounds (each team plays three times)
+                </SelectItem>
+                <SelectItem value="4">
+                  4 Rounds (each team plays four times)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label htmlFor="team-size">Team Size</Label>
-            <Select value={teamSize.toString()} onValueChange={(value) => setTeamSize(parseInt(value))}>
+            <Select
+              value={teamSize.toString()}
+              onValueChange={(value) => setTeamSize(parseInt(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select team size" />
               </SelectTrigger>
@@ -275,12 +323,14 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
             </Select>
           </div>
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="half-time" 
-              checked={hasHalfTime} 
-              onCheckedChange={(checked) => setHasHalfTime(checked as boolean)} 
+            <Checkbox
+              id="half-time"
+              checked={hasHalfTime}
+              onCheckedChange={(checked) => setHasHalfTime(checked as boolean)}
             />
-            <Label htmlFor="half-time" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <Label
+              htmlFor="half-time"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Include half-time breaks in matches
             </Label>
           </div>
@@ -303,12 +353,18 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 value={newPlayerName}
                 onChange={(e) => setNewPlayerName(e.target.value)}
                 placeholder="Full name"
-                onKeyPress={(e) => e.key === 'Enter' && newPlayerName.trim() && addPlayer()}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && newPlayerName.trim() && addPlayer()
+                }
               />
             </div>
             <div>
               <Label htmlFor="player-hat">Skill Level</Label>
-              <Select value={newPlayerHat} onValueChange={(value: 'first' | 'second') => setNewPlayerHat(value)}>
+              <Select
+                value={newPlayerHat}
+                onValueChange={(value: "first" | "second") =>
+                  setNewPlayerHat(value)
+                }>
                 <SelectTrigger id="player-hat" className="w-full">
                   <SelectValue placeholder="Select skill level" />
                 </SelectTrigger>
@@ -319,7 +375,10 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
               </Select>
             </div>
             <div className="flex items-end sm:col-span-2 lg:col-span-1">
-              <Button onClick={addPlayer} disabled={!newPlayerName.trim()} className="w-full">
+              <Button
+                onClick={addPlayer}
+                disabled={!newPlayerName.trim()}
+                className="w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Player
               </Button>
@@ -329,7 +388,9 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
           {players.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium">Registered Players ({players.length})</h4>
+                <h4 className="font-medium">
+                  Registered Players ({players.length})
+                </h4>
                 <div className="flex gap-2">
                   <Badge variant="outline">First Hat: {firstHatCount}</Badge>
                   <Badge variant="outline">Second Hat: {secondHatCount}</Badge>
@@ -337,57 +398,65 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
               </div>
               <div className="grid gap-2">
                 {players.map((player, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className="font-medium">{player.name}</span>
-                      <Badge variant={player.hat === 'first' ? 'default' : 'secondary'}>
-                        {player.hat === 'first' ? 'Strong' : 'Weak'}
+                      <Badge
+                        variant={
+                          player.hat === "first" ? "default" : "secondary"
+                        }>
+                        {player.hat === "first" ? "Strong" : "Weak"}
                       </Badge>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removePlayer(index)}
-                    >
+                      onClick={() => removePlayer(index)}>
                       <Trash className="w-4 h-4" />
                     </Button>
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                <Button 
-                  onClick={generateTeams} 
+                <Button
+                  onClick={generateTeams}
                   disabled={players.length < teamSize}
                   variant="outline"
-                  className="w-full sm:w-auto"
-                >
+                  className="w-full sm:w-auto">
                   <Shuffle className="w-4 h-4 mr-2" />
                   Generate Teams ({teamSize}v{teamSize})
                 </Button>
                 <div className="text-sm text-muted-foreground flex items-center sm:ml-2">
                   {players.length % teamSize !== 0 && players.length > 0 && (
                     <Badge variant="secondary">
-                      {players.length % teamSize} player{players.length % teamSize !== 1 ? 's' : ''} will sit out
+                      {players.length % teamSize} player
+                      {players.length % teamSize !== 1 ? "s" : ""} will sit out
                     </Badge>
                   )}
                 </div>
               </div>
-              
+
               {players.length < teamSize && players.length > 0 && (
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> You need at least {teamSize} players to form teams for {teamSize}v{teamSize} format.
-                    Currently have {players.length} player{players.length !== 1 ? 's' : ''}.
+                    <strong>Note:</strong> You need at least {teamSize} players
+                    to form teams for {teamSize}v{teamSize} format. Currently
+                    have {players.length} player
+                    {players.length !== 1 ? "s" : ""}.
                   </p>
                 </div>
               )}
-              
+
               {players.length >= teamSize && teamSize > 1 && (
                 <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-800">
-                    <strong>Team Balance:</strong> Teams will be created with balanced skill distribution.
-                    Strong players ({firstHatCount}) and weak players ({secondHatCount}) will be distributed evenly across teams.
+                    <strong>Team Balance:</strong> Teams will be created with
+                    balanced skill distribution. Strong players ({firstHatCount}
+                    ) and weak players ({secondHatCount}) will be distributed
+                    evenly across teams.
                   </p>
                 </div>
               )}
@@ -409,12 +478,11 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                     <h4 className="font-semibold">{team.name}</h4>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
-                          onClick={() => openTeamEditor(team)}
-                        >
-                          <Edit2 className="w-4 h-4" />
+                          onClick={() => openTeamEditor(team)}>
+                          <Edit className="w-4 h-4" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
@@ -434,15 +502,19 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                           <div>
                             <Label>Player Aliases</Label>
                             <div className="space-y-2 mt-2">
-                              {editingTeam?.players.map(player => (
+                              {editingTeam?.players.map((player) => (
                                 <div key={player.id}>
-                                  <Label className="text-sm text-muted-foreground">{player.name}</Label>
+                                  <Label className="text-sm text-muted-foreground">
+                                    {player.name}
+                                  </Label>
                                   <Input
-                                    value={editPlayerAliases[player.id] || ''}
-                                    onChange={(e) => setEditPlayerAliases(prev => ({
-                                      ...prev,
-                                      [player.id]: e.target.value
-                                    }))}
+                                    value={editPlayerAliases[player.id] || ""}
+                                    onChange={(e) =>
+                                      setEditPlayerAliases((prev) => ({
+                                        ...prev,
+                                        [player.id]: e.target.value,
+                                      }))
+                                    }
                                     placeholder="Enter alias"
                                   />
                                 </div>
@@ -454,7 +526,9 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                               <Button variant="outline">Cancel</Button>
                             </DialogTrigger>
                             <DialogTrigger asChild>
-                              <Button onClick={saveTeamEdits}>Save Changes</Button>
+                              <Button onClick={saveTeamEdits}>
+                                Save Changes
+                              </Button>
                             </DialogTrigger>
                           </div>
                         </div>
@@ -462,17 +536,22 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                     </Dialog>
                   </div>
                   <div className="space-y-1">
-                    {team.players.map(player => (
-                      <div key={player.id} className="flex items-center justify-between text-sm">
+                    {team.players.map((player) => (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between text-sm">
                         <div>
                           <span className="font-medium">{player.name}</span>
-                          <span className="text-muted-foreground ml-1">({player.alias})</span>
+                          <span className="text-muted-foreground ml-1">
+                            ({player.alias})
+                          </span>
                         </div>
-                        <Badge 
-                          variant={player.hat === 'first' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {player.hat === 'first' ? 'S' : 'W'}
+                        <Badge
+                          variant={
+                            player.hat === "first" ? "default" : "secondary"
+                          }
+                          className="text-xs">
+                          {player.hat === "first" ? "S" : "W"}
                         </Badge>
                       </div>
                     ))}
@@ -480,11 +559,16 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-4 p-4 bg-primary/10 rounded-lg">
               <p className="text-sm text-primary">
-                <strong>Tournament Format:</strong> {teamSize}v{teamSize} • {rounds} round{rounds > 1 ? 's' : ''} • {teams.length * (teams.length - 1) / 2 * rounds} matches total
-                {hasHalfTime && <span className="ml-2">• With half-time breaks</span>}
+                <strong>Tournament Format:</strong> {teamSize}v{teamSize} •{" "}
+                {rounds} round{rounds > 1 ? "s" : ""} •{" "}
+                {((teams.length * (teams.length - 1)) / 2) * rounds} matches
+                total
+                {hasHalfTime && (
+                  <span className="ml-2">• With half-time breaks</span>
+                )}
               </p>
             </div>
           </CardContent>
@@ -492,31 +576,31 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
       )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
-        <Button 
+        <Button
           variant="outline"
-          onClick={() => onSave({
-            ...tournament,
-            name: name.trim(),
-            date,
-            rounds,
-            teamSize,
-            hasHalfTime,
-            teams
-          })}
-          className="w-full sm:w-auto order-2 sm:order-1"
-        >
+          onClick={() =>
+            onSave({
+              ...tournament,
+              name: name.trim(),
+              date,
+              rounds,
+              teamSize,
+              hasHalfTime,
+              teams,
+            })
+          }
+          className="w-full sm:w-auto order-2 sm:order-1">
           Save Draft
         </Button>
-        <Button 
+        <Button
           onClick={handleComplete}
           disabled={!canComplete}
-          className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2"
-        >
+          className="bg-primary hover:bg-primary/90 w-full sm:w-auto order-1 sm:order-2">
           Complete Setup & Generate Fixtures
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
-export default TournamentSetup
+export default TournamentSetup;

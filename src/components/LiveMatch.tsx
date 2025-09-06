@@ -1,241 +1,274 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Play, Pause, Square, Plus, Minus, MessageSquare, SpeakerHigh, SpeakerSlash, Trash } from "@phosphor-icons/react"
-import { toast } from 'sonner'
-import { Tournament, Match, Goal, Player } from '../App'
-import { soundService } from '@/lib/soundService'
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Play,
+  Pause,
+  Square,
+  Plus,
+  Minus,
+  MessageSquare,
+  Volume2,
+  VolumeX,
+  Trash,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Tournament, Match, Goal, Player } from "../App";
+import { soundService } from "@/lib/soundService";
 
 interface LiveMatchProps {
-  match: Match
-  tournament: Tournament
-  onUpdateMatch: (match: Match) => void
-  onEndMatch: () => void
+  match: Match;
+  tournament: Tournament;
+  onUpdateMatch: (match: Match) => void;
+  onEndMatch: () => void;
 }
 
-function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchProps) {
-  const [isRunning, setIsRunning] = useState(match.status === 'live')
-  const [time, setTime] = useState(match.duration)
-  const [score1, setScore1] = useState(match.score1)
-  const [score2, setScore2] = useState(match.score2)
-  const [goals, setGoals] = useState<Goal[]>(match.goals)
-  const [comments, setComments] = useState(match.comments || '')
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [isHalfTime, setIsHalfTime] = useState(false)
-  const [firstHalfCompleted, setFirstHalfCompleted] = useState(match.duration >= 2700)
+function LiveMatch({
+  match,
+  tournament,
+  onUpdateMatch,
+  onEndMatch,
+}: LiveMatchProps) {
+  const [isRunning, setIsRunning] = useState(match.status === "live");
+  const [time, setTime] = useState(match.duration);
+  const [score1, setScore1] = useState(match.score1);
+  const [score2, setScore2] = useState(match.score2);
+  const [goals, setGoals] = useState<Goal[]>(match.goals);
+  const [comments, setComments] = useState(match.comments || "");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isHalfTime, setIsHalfTime] = useState(false);
+  const [firstHalfCompleted, setFirstHalfCompleted] = useState(
+    match.duration >= 2700
+  );
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-    
+    let interval: number | null = null;
+
     if (isRunning) {
       interval = setInterval(() => {
-        setTime(prevTime => {
-          const newTime = prevTime + 1
-          
+        setTime((prevTime) => {
+          const newTime = prevTime + 1;
+
           // Show milestone notifications (every 5 minutes)
           if (newTime > 0 && newTime % 300 === 0) {
-            const minutes = Math.floor(newTime / 60)
+            const minutes = Math.floor(newTime / 60);
             toast.info(`${minutes} minutes played`, {
               duration: 3000,
-            })
-            
+            });
+
             if (soundEnabled) {
               // Simple notification sound can be a brief sound
             }
           }
-          
+
           // Check for half-time break (at 45 minutes = 2700 seconds)
-          if (tournament.hasHalfTime && newTime === 2700 && !firstHalfCompleted) {
-            setIsHalfTime(true)
-            setFirstHalfCompleted(true)
-            setIsRunning(false)
-            
+          if (
+            tournament.hasHalfTime &&
+            newTime === 2700 &&
+            !firstHalfCompleted
+          ) {
+            setIsHalfTime(true);
+            setFirstHalfCompleted(true);
+            setIsRunning(false);
+
             // Play half-time whistle sound
             if (soundEnabled) {
-              soundService.playMatchEndSound() // Use same whistle sound for half-time
+              soundService.playMatchEndSound(); // Use same whistle sound for half-time
             }
-            
-            toast.info('⏰ Half Time!', {
-              description: 'Take a break. Resume when ready for second half.',
+
+            toast.info("⏰ Half Time!", {
+              description: "Take a break. Resume when ready for second half.",
               duration: 6000,
-            })
+            });
           }
-          
-          return newTime
-        })
-      }, 1000)
+
+          return newTime;
+        });
+      }, 1000);
     }
-    
+
     return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isRunning, soundEnabled, tournament.hasHalfTime, firstHalfCompleted])
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, soundEnabled, tournament.hasHalfTime, firstHalfCompleted]);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const startMatch = () => {
-    setIsRunning(true)
-    const updatedMatch = { ...match, status: 'live' as const }
-    onUpdateMatch(updatedMatch)
-    
+    setIsRunning(true);
+    const updatedMatch = { ...match, status: "live" as const };
+    onUpdateMatch(updatedMatch);
+
     // Play whistle sound when starting the match
     if (soundEnabled) {
-      soundService.playMatchEndSound()
+      soundService.playMatchEndSound();
     }
-    
-    toast.success('Match started! ⚽', {
-      description: `${match.team1.name} vs ${match.team2.name}`
-    })
-  }
+
+    toast.success("Match started! ⚽", {
+      description: `${match.team1.name} vs ${match.team2.name}`,
+    });
+  };
 
   const pauseMatch = () => {
-    setIsRunning(false)
-    
-    toast.info('Match paused', {
-      description: 'Timer stopped',
+    setIsRunning(false);
+
+    toast.info("Match paused", {
+      description: "Timer stopped",
       duration: 2000,
-    })
-  }
+    });
+  };
 
   const endFirstHalf = () => {
-    setIsRunning(false)
-    setIsHalfTime(true)
-    setFirstHalfCompleted(true)
-    
+    setIsRunning(false);
+    setIsHalfTime(true);
+    setFirstHalfCompleted(true);
+
     // Play half-time whistle sound
     if (soundEnabled) {
-      soundService.playMatchEndSound()
+      soundService.playMatchEndSound();
     }
-    
-    toast.info('⏰ First Half Ended!', {
-      description: 'Take a break. Resume when ready for second half.',
+
+    toast.info("⏰ First Half Ended!", {
+      description: "Take a break. Resume when ready for second half.",
       duration: 6000,
-    })
-  }
+    });
+  };
 
   const resumeMatch = () => {
-    setIsRunning(true)
-    
+    setIsRunning(true);
+
     if (isHalfTime) {
-      setIsHalfTime(false)
-      
+      setIsHalfTime(false);
+
       // Play whistle sound when starting second half
       if (soundEnabled) {
-        soundService.playMatchEndSound()
+        soundService.playMatchEndSound();
       }
-      
-      toast.success('Second Half Started!', {
-        description: 'Timer running for second half',
+
+      toast.success("Second Half Started!", {
+        description: "Timer running for second half",
         duration: 3000,
-      })
+      });
     } else {
-      toast.success('Match resumed', {
-        description: 'Timer running',
+      toast.success("Match resumed", {
+        description: "Timer running",
         duration: 2000,
-      })
+      });
     }
-  }
+  };
 
   const addGoal = (teamId: string, playerId: string) => {
     const player = tournament.teams
-      .find(t => t.id === teamId)
-      ?.players.find(p => p.id === playerId)
-    
-    if (!player) return
+      .find((t) => t.id === teamId)
+      ?.players.find((p) => p.id === playerId);
+
+    if (!player) return;
 
     const newGoal: Goal = {
       id: Date.now().toString(),
       playerId: player.id,
       playerName: player.alias,
       teamId: teamId,
-      minute: Math.floor(time / 60)
-    }
+      minute: Math.floor(time / 60),
+    };
 
-    const updatedGoals = [...goals, newGoal]
-    setGoals(updatedGoals)
+    const updatedGoals = [...goals, newGoal];
+    setGoals(updatedGoals);
 
-    const teamName = tournament.teams.find(t => t.id === teamId)?.name || 'Unknown Team'
-    
+    const teamName =
+      tournament.teams.find((t) => t.id === teamId)?.name || "Unknown Team";
+
     if (teamId === match.team1.id) {
-      setScore1(prev => prev + 1)
+      setScore1((prev) => prev + 1);
     } else {
-      setScore2(prev => prev + 1)
+      setScore2((prev) => prev + 1);
     }
-    
+
     // Play goal sound and show notification
     if (soundEnabled) {
-      soundService.playGoalSound()
+      soundService.playGoalSound();
     }
-    
-    toast.success('⚽ GOAL!', {
+
+    toast.success("⚽ GOAL!", {
       description: `${player.alias} scores for ${teamName} at ${newGoal.minute}'`,
       duration: 4000,
-    })
-  }
+    });
+  };
 
   const removeGoal = (goalId: string) => {
-    const goalToRemove = goals.find(g => g.id === goalId)
-    if (!goalToRemove) return
+    const goalToRemove = goals.find((g) => g.id === goalId);
+    if (!goalToRemove) return;
 
-    const updatedGoals = goals.filter(g => g.id !== goalId)
-    setGoals(updatedGoals)
-    
-    const teamName = tournament.teams.find(t => t.id === goalToRemove.teamId)?.name || 'Unknown Team'
+    const updatedGoals = goals.filter((g) => g.id !== goalId);
+    setGoals(updatedGoals);
+
+    const teamName =
+      tournament.teams.find((t) => t.id === goalToRemove.teamId)?.name ||
+      "Unknown Team";
 
     if (goalToRemove.teamId === match.team1.id) {
-      setScore1(prev => Math.max(0, prev - 1))
+      setScore1((prev) => Math.max(0, prev - 1));
     } else {
-      setScore2(prev => Math.max(0, prev - 1))
+      setScore2((prev) => Math.max(0, prev - 1));
     }
-    
+
     // Show notification for goal removal
-    toast.info('Goal removed', {
+    toast.info("Goal removed", {
       description: `${goalToRemove.playerName}'s goal for ${teamName} has been removed`,
       duration: 3000,
-    })
-  }
+    });
+  };
 
   const endMatch = () => {
-    setIsRunning(false)
-    
+    setIsRunning(false);
+
     const finalMatch: Match = {
       ...match,
-      status: 'completed',
+      status: "completed",
       duration: time,
       score1,
       score2,
       goals,
-      comments: comments.trim()
-    }
-    
+      comments: comments.trim(),
+    };
+
     // Play match end sound and show final score notification
     if (soundEnabled) {
-      soundService.playMatchEndSound()
+      soundService.playMatchEndSound();
     }
-    
-    const winnerText = score1 > score2 ? `${match.team1.name} wins!` :
-                      score2 > score1 ? `${match.team2.name} wins!` : 
-                      'It\'s a draw!'
-    
+
+    const winnerText =
+      score1 > score2
+        ? `${match.team1.name} wins!`
+        : score2 > score1
+        ? `${match.team2.name} wins!`
+        : "It's a draw!";
+
     toast.success(`Match completed! ${winnerText}`, {
       description: `Final score: ${match.team1.name} ${score1} - ${score2} ${match.team2.name}`,
       duration: 5000,
-    })
-    
-    onUpdateMatch(finalMatch)
-    onEndMatch()
-  }
+    });
 
-  const team1Goals = goals.filter(g => g.teamId === match.team1.id)
-  const team2Goals = goals.filter(g => g.teamId === match.team2.id)
+    onUpdateMatch(finalMatch);
+    onEndMatch();
+  };
+
+  const team1Goals = goals.filter((g) => g.teamId === match.team1.id);
+  const team2Goals = goals.filter((g) => g.teamId === match.team2.id);
 
   return (
     <div className="space-y-6">
@@ -248,19 +281,23 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setSoundEnabled(!soundEnabled)
-                  toast.info(soundEnabled ? 'Sound effects disabled' : 'Sound effects enabled', {
-                    duration: 2000,
-                  })
+                  setSoundEnabled(!soundEnabled);
+                  toast.info(
+                    soundEnabled
+                      ? "Sound effects disabled"
+                      : "Sound effects enabled",
+                    {
+                      duration: 2000,
+                    }
+                  );
                 }}
-                className="flex items-center gap-2"
-              >
+                className="flex items-center gap-2">
                 {soundEnabled ? (
-                  <SpeakerHigh className="w-4 h-4" />
+                  <Volume2 className="w-4 h-4" />
                 ) : (
-                  <SpeakerSlash className="w-4 h-4" />
+                  <VolumeX className="w-4 h-4" />
                 )}
-                {soundEnabled ? 'Sound On' : 'Sound Off'}
+                {soundEnabled ? "Sound On" : "Sound Off"}
               </Button>
               <Badge variant={isRunning ? "default" : "secondary"}>
                 {isRunning ? "LIVE" : "PAUSED"}
@@ -278,94 +315,121 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
             )}
             {tournament.hasHalfTime && !isHalfTime && (
               <div className="text-sm text-muted-foreground">
-                {firstHalfCompleted ? 'Second Half' : 'First Half'}
+                {firstHalfCompleted ? "Second Half" : "First Half"}
               </div>
             )}
             <div className="flex flex-wrap gap-2 md:gap-4 justify-center">
-              {match.status === 'pending' && !isRunning && (
-                <Button onClick={startMatch} size="lg" className="flex-1 sm:flex-none">
+              {match.status === "pending" && !isRunning && (
+                <Button
+                  onClick={startMatch}
+                  size="lg"
+                  className="flex-1 sm:flex-none">
                   <Play className="w-5 h-5 mr-2" />
                   Start Match
                 </Button>
               )}
-              
+
               {isRunning && (
-                <Button onClick={pauseMatch} variant="outline" size="lg" className="flex-1 sm:flex-none">
+                <Button
+                  onClick={pauseMatch}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 sm:flex-none">
                   <Pause className="w-5 h-5 mr-2" />
                   Pause
                 </Button>
               )}
-              
-              {!isRunning && match.status === 'live' && (
-                <Button onClick={resumeMatch} size="lg" className="flex-1 sm:flex-none">
+
+              {!isRunning && match.status === "live" && (
+                <Button
+                  onClick={resumeMatch}
+                  size="lg"
+                  className="flex-1 sm:flex-none">
                   <Play className="w-5 h-5 mr-2" />
-                  {isHalfTime ? 'Start Second Half' : 'Resume'}
+                  {isHalfTime ? "Start Second Half" : "Resume"}
                 </Button>
               )}
-              
+
               {/* Show End First Half button during first half with half-time enabled */}
-              {tournament.hasHalfTime && time > 0 && time < 2700 && !firstHalfCompleted && (
-                <Button onClick={endFirstHalf} variant="secondary" size="lg" className="flex-1 sm:flex-none">
-                  <Square className="w-5 h-5 mr-2" />
-                  <span className="hidden sm:inline">End First Half</span>
-                  <span className="sm:hidden">End Half</span>
-                </Button>
-              )}
-              
+              {tournament.hasHalfTime &&
+                time > 0 &&
+                time < 2700 &&
+                !firstHalfCompleted && (
+                  <Button
+                    onClick={endFirstHalf}
+                    variant="secondary"
+                    size="lg"
+                    className="flex-1 sm:flex-none">
+                    <Square className="w-5 h-5 mr-2" />
+                    <span className="hidden sm:inline">End First Half</span>
+                    <span className="sm:hidden">End Half</span>
+                  </Button>
+                )}
+
               {/* Show End Match button after first half is completed or if no half-time */}
-              {(time > 0 && (!tournament.hasHalfTime || firstHalfCompleted)) && (
-                <Button onClick={endMatch} variant="destructive" size="lg" className="flex-1 sm:flex-none">
+              {time > 0 && (!tournament.hasHalfTime || firstHalfCompleted) && (
+                <Button
+                  onClick={endMatch}
+                  variant="destructive"
+                  size="lg"
+                  className="flex-1 sm:flex-none">
                   <Square className="w-5 h-5 mr-2" />
                   End Match
                 </Button>
               )}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-start">
             <Card className="order-1 md:order-none">
               <CardHeader className="text-center pb-3">
-                <CardTitle className="text-lg md:text-xl truncate">{match.team1.name}</CardTitle>
-                <div className="text-3xl md:text-4xl font-bold text-primary">{score1}</div>
+                <CardTitle className="text-lg md:text-xl truncate">
+                  {match.team1.name}
+                </CardTitle>
+                <div className="text-3xl md:text-4xl font-bold text-primary">
+                  {score1}
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
-                  {match.team1.players.map(player => (
-                    <div key={player.id} className="flex items-center justify-between">
+                  {match.team1.players.map((player) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => addGoal(match.team1.id, player.id)}
                         disabled={!isRunning}
-                        className="flex-1 mr-2 text-xs md:text-sm"
-                      >
+                        className="flex-1 mr-2 text-xs md:text-sm">
                         <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                         <span className="truncate">{player.alias}</span>
                       </Button>
                     </div>
                   ))}
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    const teamGoals = goals.filter(g => g.teamId === match.team1.id)
+                    const teamGoals = goals.filter(
+                      (g) => g.teamId === match.team1.id
+                    );
                     if (teamGoals.length > 0) {
-                      removeGoal(teamGoals[teamGoals.length - 1].id)
+                      removeGoal(teamGoals[teamGoals.length - 1].id);
                     }
                   }}
                   disabled={team1Goals.length === 0}
-                  className="w-full text-xs md:text-sm"
-                >
+                  className="w-full text-xs md:text-sm">
                   <Minus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Undo Last Goal
                 </Button>
-                
+
                 {team1Goals.length > 0 && (
                   <div className="text-xs md:text-sm text-muted-foreground">
                     <div className="font-medium mb-1">Goals:</div>
-                    {team1Goals.map(goal => (
+                    {team1Goals.map((goal) => (
                       <div key={goal.id} className="flex justify-between">
                         <span className="truncate mr-2">{goal.playerName}</span>
                         <span>{goal.minute}'</span>
@@ -375,57 +439,65 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
                 )}
               </CardContent>
             </Card>
-            
+
             <div className="text-center order-3 md:order-none">
-              <div className="text-xl md:text-2xl font-bold text-muted-foreground mb-2">VS</div>
+              <div className="text-xl md:text-2xl font-bold text-muted-foreground mb-2">
+                VS
+              </div>
               <div className="text-sm md:text-lg text-muted-foreground">
                 Round {match.round}
               </div>
             </div>
-            
+
             <Card className="order-2 md:order-none">
               <CardHeader className="text-center pb-3">
-                <CardTitle className="text-lg md:text-xl truncate">{match.team2.name}</CardTitle>
-                <div className="text-3xl md:text-4xl font-bold text-primary">{score2}</div>
+                <CardTitle className="text-lg md:text-xl truncate">
+                  {match.team2.name}
+                </CardTitle>
+                <div className="text-3xl md:text-4xl font-bold text-primary">
+                  {score2}
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-2">
-                  {match.team2.players.map(player => (
-                    <div key={player.id} className="flex items-center justify-between">
+                  {match.team2.players.map((player) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => addGoal(match.team2.id, player.id)}
                         disabled={!isRunning}
-                        className="flex-1 mr-2 text-xs md:text-sm"
-                      >
+                        className="flex-1 mr-2 text-xs md:text-sm">
                         <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                         <span className="truncate">{player.alias}</span>
                       </Button>
                     </div>
                   ))}
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    const teamGoals = goals.filter(g => g.teamId === match.team2.id)
+                    const teamGoals = goals.filter(
+                      (g) => g.teamId === match.team2.id
+                    );
                     if (teamGoals.length > 0) {
-                      removeGoal(teamGoals[teamGoals.length - 1].id)
+                      removeGoal(teamGoals[teamGoals.length - 1].id);
                     }
                   }}
                   disabled={team2Goals.length === 0}
-                  className="w-full text-xs md:text-sm"
-                >
+                  className="w-full text-xs md:text-sm">
                   <Minus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Undo Last Goal
                 </Button>
-                
+
                 {team2Goals.length > 0 && (
                   <div className="text-xs md:text-sm text-muted-foreground">
                     <div className="font-medium mb-1">Goals:</div>
-                    {team2Goals.map(goal => (
+                    {team2Goals.map((goal) => (
                       <div key={goal.id} className="flex justify-between">
                         <span className="truncate mr-2">{goal.playerName}</span>
                         <span>{goal.minute}'</span>
@@ -438,7 +510,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
           </div>
         </CardContent>
       </Card>
-      
+
       {goals.length > 0 && (
         <Card>
           <CardHeader>
@@ -448,33 +520,37 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
             <div className="space-y-2">
               {goals
                 .sort((a, b) => b.minute - a.minute)
-                .map(goal => (
-                <div key={goal.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{goal.minute}'</Badge>
-                    <span className="font-medium">{goal.playerName}</span>
-                    <span className="text-muted-foreground">⚽</span>
+                .map((goal) => (
+                  <div
+                    key={goal.id}
+                    className="flex items-center justify-between p-2 bg-muted rounded">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{goal.minute}'</Badge>
+                      <span className="font-medium">{goal.playerName}</span>
+                      <span className="text-muted-foreground">⚽</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {
+                          tournament.teams.find((t) => t.id === goal.teamId)
+                            ?.name
+                        }
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeGoal(goal.id)}
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive">
+                        <Trash className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {tournament.teams.find(t => t.id === goal.teamId)?.name}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeGoal(goal.id)}
-                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -484,7 +560,9 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <Label htmlFor="match-comments">Add comments about this match</Label>
+            <Label htmlFor="match-comments">
+              Add comments about this match
+            </Label>
             <Textarea
               id="match-comments"
               value={comments}
@@ -499,7 +577,7 @@ function LiveMatch({ match, tournament, onUpdateMatch, onEndMatch }: LiveMatchPr
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
-export default LiveMatch
+export default LiveMatch;
