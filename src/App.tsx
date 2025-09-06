@@ -255,13 +255,14 @@ function App() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {tournaments.map(tournament => (
-                <Card key={tournament.id} className="hover:shadow-lg transition-shadow">
+                <Card 
+                  key={tournament.id} 
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => selectTournament(tournament)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle 
-                        className="text-lg cursor-pointer flex-1"
-                        onClick={() => selectTournament(tournament)}
-                      >
+                      <CardTitle className="text-lg flex-1">
                         {tournament.name || 'Unnamed Tournament'}
                       </CardTitle>
                       <div className="flex items-center gap-2">
@@ -286,10 +287,7 @@ function App() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent 
-                    className="cursor-pointer"
-                    onClick={() => selectTournament(tournament)}
-                  >
+                  <CardContent>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
