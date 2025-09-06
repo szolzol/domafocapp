@@ -307,9 +307,9 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
               />
             </div>
             <div>
-              <Label htmlFor="player-hat">Skill Level</Label>
+              <Label htmlFor="player-hat" className="block text-center mb-2">Skill Level</Label>
               <Select value={newPlayerHat} onValueChange={(value: 'first' | 'second') => setNewPlayerHat(value)}>
-                <SelectTrigger>
+                <SelectTrigger id="player-hat">
                   <SelectValue placeholder="Select skill level" />
                 </SelectTrigger>
                 <SelectContent>
