@@ -197,7 +197,7 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-16 h-16 flex items-center justify-center">
-            <img src={soccerBallImage} alt="Soccer Ball" className="w-12 h-12" />
+            <img src={soccerBallImage} alt="Soccer Ball" className="w-16 h-12 object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
