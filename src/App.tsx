@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Plus, Calendar, Users, Trophy, BarChart3, Trash, Upload } from "@phosphor-icons/react"
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'
-import soccerBallIcon from '@/assets/images/soccer_ball.png'
 import TournamentSetup from '@/components/TournamentSetup'
 import Fixtures from '@/components/Fixtures'
 import LiveMatch from '@/components/LiveMatch'
@@ -197,7 +196,7 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-16 h-16 flex items-center justify-center">
-            <img src={soccerBallIcon} alt="Soccer Ball" className="w-12 h-12 object-contain" />
+            <div className="w-12 h-12 rounded-full soccer-ball"></div>
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
