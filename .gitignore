@@ -25,6 +25,17 @@ dist-ssr
 *.sw?
 
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase
+firebase-debug.log
+.firebase/
+firebase-adminsdk-*.json
+serviceAccount*.json
+
 **/agent-eval-report*
 packages
 pids

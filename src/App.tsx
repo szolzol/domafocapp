@@ -1,7 +1,6 @@
 import { useState } from "react";
-// Temporarily using localStorage fallback due to GitHub Spark rate limiting
-// import { useKV } from "@github/spark/hooks";
-import { useKVFallback } from "@/hooks/usePersistentStorage";
+// Import the new tournament storage hook
+import { useTournamentStorage } from "@/hooks/usePersistentStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +31,7 @@ import LiveMatch from "@/components/LiveMatch";
 import MatchEditor from "@/components/MatchEditor";
 import Statistics from "@/components/Statistics";
 import DataImporter from "@/components/DataImporter";
+import MigrationStatus from "@/components/MigrationStatus";
 import soccerBallImage from "@/assets/images/soccer_ball.png";
 
 export interface Tournament {
@@ -91,16 +91,17 @@ export interface Goal {
 }
 
 function App() {
-  const [tournamentsJSON, setTournamentsJSON] = useKVFallback(
-    "tournaments",
-    "[]"
-  );
-  const tournaments: Tournament[] = tournamentsJSON ? JSON.parse(tournamentsJSON) : [];
-  const setTournaments = (newTournaments: Tournament[] | ((current: Tournament[]) => Tournament[])) => {
-    const tournamentsToSet = typeof newTournaments === 'function' ? newTournaments(tournaments) : newTournaments;
-    setTournamentsJSON(JSON.stringify(tournamentsToSet));
-  };
-  
+  const {
+    tournaments,
+    loading,
+    error,
+    useFirestore,
+    saveTournament: saveTournamentToStorage,
+    deleteTournament: deleteTournamentFromStorage,
+    retryCloudConnection,
+    migrateToFirestore,
+  } = useTournamentStorage();
+
   const [currentView, setCurrentView] = useState<
     "home" | "setup" | "fixtures" | "match" | "edit" | "stats"
   >("home");
@@ -135,20 +136,15 @@ function App() {
     setCurrentView("setup");
   };
 
-  const saveTournament = (tournament: Tournament) => {
-    setTournaments((currentTournaments) => {
-      const existingIndex = currentTournaments.findIndex(
-        (t) => t.id === tournament.id
-      );
-      if (existingIndex >= 0) {
-        const updated = [...currentTournaments];
-        updated[existingIndex] = tournament;
-        return updated;
-      } else {
-        return [...currentTournaments, tournament];
-      }
-    });
-    setSelectedTournament(tournament);
+  const saveTournament = async (tournament: Tournament) => {
+    try {
+      await saveTournamentToStorage(tournament);
+      setSelectedTournament(tournament);
+      toast.success("Tournament saved successfully!");
+    } catch (error) {
+      console.error("Error saving tournament:", error);
+      toast.error("Failed to save tournament");
+    }
   };
 
   const selectTournament = (tournament: Tournament) => {
@@ -170,26 +166,29 @@ function App() {
     setCurrentView("edit");
   };
 
-  const deleteTournament = (tournamentId: string) => {
-    setTournaments((currentTournaments) =>
-      currentTournaments.filter((t) => t.id !== tournamentId)
-    );
+  const deleteTournament = async (tournamentId: string) => {
+    try {
+      await deleteTournamentFromStorage(tournamentId);
 
-    // If we're viewing the deleted tournament, go back to home
-    if (selectedTournament?.id === tournamentId) {
-      setSelectedTournament(null);
-      setCurrentView("home");
+      // If we're viewing the deleted tournament, go back to home
+      if (selectedTournament?.id === tournamentId) {
+        setSelectedTournament(null);
+        setCurrentView("home");
+      }
+
+      // Reset delete confirmation state
+      setDeleteConfirmation({
+        open: false,
+        tournamentId: "",
+        tournamentName: "",
+      });
+      setDeleteText("");
+
+      toast.success("Tournament deleted successfully");
+    } catch (error) {
+      console.error("Error deleting tournament:", error);
+      toast.error("Failed to delete tournament");
     }
-
-    // Reset delete confirmation state
-    setDeleteConfirmation({
-      open: false,
-      tournamentId: "",
-      tournamentName: "",
-    });
-    setDeleteText("");
-
-    toast.success("Tournament deleted successfully");
   };
 
   const openDeleteConfirmation = (
@@ -233,12 +232,19 @@ function App() {
     setSelectedMatch(updatedMatch);
   };
 
-  const handleImportTournaments = (importedTournaments: Tournament[]) => {
-    setTournaments((currentTournaments) => [
-      ...currentTournaments,
-      ...importedTournaments,
-    ]);
-    setShowImporter(false);
+  const handleImportTournaments = async (importedTournaments: Tournament[]) => {
+    try {
+      for (const tournament of importedTournaments) {
+        await saveTournamentToStorage(tournament);
+      }
+      setShowImporter(false);
+      toast.success(
+        `Successfully imported ${importedTournaments.length} tournaments`
+      );
+    } catch (error) {
+      console.error("Error importing tournaments:", error);
+      toast.error("Failed to import tournaments");
+    }
   };
 
   const renderHomeScreen = () => (
@@ -257,7 +263,38 @@ function App() {
             <p className="text-muted-foreground">
               Friendly Football Tournament Manager
             </p>
+            <div className="flex items-center gap-2 mt-2">
+              {useFirestore ? (
+                <Badge
+                  variant="outline"
+                  className="text-green-600 border-green-600">
+                  ☁️ Cloud Sync Active
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="text-orange-600 border-orange-600">
+                  📱 Offline Mode
+                </Badge>
+              )}
+              {error && (
+                <Badge variant="destructive" className="text-xs">
+                  {error}
+                </Badge>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Migration Status */}
+        <div className="mb-6">
+          <MigrationStatus
+            useFirestore={useFirestore}
+            error={error}
+            onRetryConnection={retryCloudConnection}
+            onMigrateToFirestore={migrateToFirestore}
+            tournamentCount={tournaments.length}
+          />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -428,6 +465,18 @@ function App() {
       />
     </div>
   );
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading tournaments...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (currentView === "home") return renderHomeScreen();
 

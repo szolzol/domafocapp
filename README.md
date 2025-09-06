@@ -5,24 +5,28 @@ A comprehensive soccer tournament management application built with **GitHub Spa
 ## 🚀 Features
 
 ### Tournament Management
+
 - **Complete Tournament Setup**: Create tournaments with custom team sizes (2v2 to 6v6)
 - **Flexible Rounds**: Support for 1-4 rounds with automatic fixture generation
 - **Team Auto-Generation**: Intelligent team balancing based on player skill levels
 - **Half-Time Support**: Optional half-time breaks for longer matches
 
 ### Live Match Tracking
+
 - **Real-Time Timer**: Match timer with milestone notifications
 - **Goal Tracking**: Record goals with player attribution and timestamps
 - **Sound Integration**: Audio notifications for goals and match events
 - **Match Comments**: Add notes and observations during matches
 
 ### Data Management
+
 - **Local Storage**: All data persists locally using GitHub Spark's useKV hook
 - **CSV Import**: Bulk import tournament data from CSV files
 - **Data Export**: Export tournament statistics and results
 - **Backup & Restore**: Tournament data is automatically saved
 
 ### Statistics & Analytics
+
 - **Live League Tables**: Real-time standings with points, goals, and match statistics
 - **Player Statistics**: Individual player goal counts and performance metrics
 - **Tournament Analytics**: Comprehensive tournament overview and insights
@@ -42,6 +46,7 @@ A comprehensive soccer tournament management application built with **GitHub Spa
 ## 🏗️ Data Storage Architecture
 
 ### GitHub Spark useKV Hook
+
 The application uses GitHub Spark's `useKV` hook for persistent data storage:
 
 ```typescript
@@ -49,20 +54,29 @@ const [tournamentsJSON, setTournamentsJSON] = useKV("tournaments", "[]");
 ```
 
 ### Data Serialization Pattern
+
 Since `useKV` only accepts JSON-serializable strings, the app implements a wrapper pattern:
 
 ```typescript
 // Store tournaments as JSON strings
-const tournaments: Tournament[] = tournamentsJSON ? JSON.parse(tournamentsJSON) : [];
+const tournaments: Tournament[] = tournamentsJSON
+  ? JSON.parse(tournamentsJSON)
+  : [];
 
 // Update function with JSON serialization
-const setTournaments = (newTournaments: Tournament[] | ((current: Tournament[]) => Tournament[])) => {
-  const tournamentsToSet = typeof newTournaments === 'function' ? newTournaments(tournaments) : newTournaments;
+const setTournaments = (
+  newTournaments: Tournament[] | ((current: Tournament[]) => Tournament[])
+) => {
+  const tournamentsToSet =
+    typeof newTournaments === "function"
+      ? newTournaments(tournaments)
+      : newTournaments;
   setTournamentsJSON(JSON.stringify(tournamentsToSet));
 };
 ```
 
 ### Data Models
+
 ```typescript
 interface Tournament {
   id: string;
@@ -98,6 +112,7 @@ interface Match {
 ```
 
 ### Storage Benefits
+
 - **No External Dependencies**: Pure client-side storage
 - **Automatic Persistence**: Data survives browser refreshes
 - **Type Safety**: Full TypeScript support with proper serialization
@@ -106,24 +121,28 @@ interface Match {
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 - Modern web browser
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/szolzol/domafocapp
    cd domafocapp
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -132,6 +151,7 @@ interface Match {
    Navigate to `http://localhost:5002` in your browser
 
 ### Development Commands
+
 ```bash
 # Start development server
 npm run dev
@@ -152,6 +172,7 @@ npm run lint
 ## 📊 Usage Guide
 
 ### Creating a Tournament
+
 1. Click "Create New Tournament" on the home screen
 2. Fill in tournament details (name, date, rounds, team size)
 3. Add players with skill level designation (Strong/Weak)
@@ -159,6 +180,7 @@ npm run lint
 5. Complete setup to generate fixtures
 
 ### Managing Matches
+
 1. Navigate to "Fixtures" tab in an active tournament
 2. Click "Start Match" to begin live tracking
 3. Use timer controls to start/pause/stop match timer
@@ -167,6 +189,7 @@ npm run lint
 6. Complete match to update league standings
 
 ### Importing Data
+
 1. Click "Import Data" on the home screen
 2. Upload CSV file with tournament data
 3. Map columns to tournament fields
@@ -176,27 +199,32 @@ npm run lint
 ## 🎮 Key Components
 
 ### TournamentSetup.tsx
+
 - Tournament configuration and team generation
 - Player registration with skill balancing
 - Fixture generation with round-robin algorithm
 
-### LiveMatch.tsx  
+### LiveMatch.tsx
+
 - Real-time match timer with milestone notifications
 - Goal recording with player and time attribution
 - Half-time break support
 - Sound integration for match events
 
 ### Fixtures.tsx
+
 - Fixture display and management
 - League table calculation and display
 - Match status tracking and updates
 
 ### Statistics.tsx
+
 - Tournament analytics and insights
 - Player performance statistics
 - Data visualization and reporting
 
 ### DataImporter.tsx
+
 - CSV import functionality
 - Data mapping and validation
 - Bulk tournament creation
@@ -204,6 +232,7 @@ npm run lint
 ## 🔧 Configuration
 
 ### Tailwind CSS v4 Theme
+
 The app uses a custom theme system with CSS variables:
 
 ```css
@@ -218,6 +247,7 @@ The app uses a custom theme system with CSS variables:
 ```
 
 ### Sound Integration
+
 Audio notifications are handled through a centralized sound service for consistent user experience.
 
 ## 🤝 Contributing
