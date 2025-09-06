@@ -286,17 +286,6 @@ function App() {
           </div>
         </div>
 
-        {/* Migration Status */}
-        <div className="mb-6">
-          <MigrationStatus
-            useFirestore={useFirestore}
-            error={error}
-            onRetryConnection={retryCloudConnection}
-            onMigrateToFirestore={migrateToFirestore}
-            tournamentCount={tournaments.length}
-          />
-        </div>
-
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
