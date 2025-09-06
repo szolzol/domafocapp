@@ -15,6 +15,7 @@ import LiveMatch from '@/components/LiveMatch'
 import MatchEditor from '@/components/MatchEditor'
 import Statistics from '@/components/Statistics'
 import DataImporter from '@/components/DataImporter'
+import soccerBallImage from '@/assets/images/soccer_ball.png'
 
 export interface Tournament {
   id: string
@@ -196,7 +197,7 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-16 h-16 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full soccer-ball"></div>
+            <img src={soccerBallImage} alt="Soccer Ball" className="w-12 h-12" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">DomaFocApp</h1>
