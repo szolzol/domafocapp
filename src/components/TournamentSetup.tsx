@@ -53,28 +53,67 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
     const shuffledFirst = [...firstHat].sort(() => Math.random() - 0.5)
     const shuffledSecond = [...secondHat].sort(() => Math.random() - 0.5)
     
-    // Combine all players and shuffle for team distribution
-    const allShuffled = [...shuffledFirst, ...shuffledSecond].sort(() => Math.random() - 0.5)
-    
     const newTeams: Team[] = []
-    const numTeams = Math.floor(allShuffled.length / teamSize)
+    const numTeams = Math.floor(players.length / teamSize)
     
-    // Create teams with the specified team size
+    // Calculate how many strong/weak players per team to aim for
+    const totalFirstHat = firstHat.length
+    const totalSecondHat = secondHat.length
+    const idealFirstPerTeam = Math.floor(totalFirstHat / numTeams)
+    const idealSecondPerTeam = Math.floor(totalSecondHat / numTeams)
+    
+    let firstHatIndex = 0
+    let secondHatIndex = 0
+    
+    // Create balanced teams
     for (let i = 0; i < numTeams; i++) {
       const teamPlayers: Player[] = []
       
-      for (let j = 0; j < teamSize; j++) {
-        const playerIndex = i * teamSize + j
-        if (playerIndex < allShuffled.length) {
-          teamPlayers.push({
-            id: `${Date.now()}_${i}_${j}`,
-            name: allShuffled[playerIndex].name,
-            alias: allShuffled[playerIndex].name, // Default alias to name
-            goals: 0,
-            hat: allShuffled[playerIndex].hat
-          })
-        }
+      // Add strong players first (try to distribute evenly)
+      let firstPlayersForThisTeam = idealFirstPerTeam
+      if (i < totalFirstHat % numTeams) {
+        firstPlayersForThisTeam++ // Some teams get one extra strong player
       }
+      
+      for (let j = 0; j < firstPlayersForThisTeam && firstHatIndex < shuffledFirst.length; j++) {
+        teamPlayers.push({
+          id: `${Date.now()}_${i}_${j}_first`,
+          name: shuffledFirst[firstHatIndex].name,
+          alias: shuffledFirst[firstHatIndex].name,
+          goals: 0,
+          hat: shuffledFirst[firstHatIndex].hat
+        })
+        firstHatIndex++
+      }
+      
+      // Add weak players to fill the team
+      let secondPlayersForThisTeam = teamSize - teamPlayers.length
+      
+      for (let j = 0; j < secondPlayersForThisTeam && secondHatIndex < shuffledSecond.length; j++) {
+        teamPlayers.push({
+          id: `${Date.now()}_${i}_${j}_second`,
+          name: shuffledSecond[secondHatIndex].name,
+          alias: shuffledSecond[secondHatIndex].name,
+          goals: 0,
+          hat: shuffledSecond[secondHatIndex].hat
+        })
+        secondHatIndex++
+      }
+      
+      // If we still need players and have remaining first hat players, add them
+      while (teamPlayers.length < teamSize && firstHatIndex < shuffledFirst.length) {
+        teamPlayers.push({
+          id: `${Date.now()}_${i}_extra_first`,
+          name: shuffledFirst[firstHatIndex].name,
+          alias: shuffledFirst[firstHatIndex].name,
+          goals: 0,
+          hat: shuffledFirst[firstHatIndex].hat
+        })
+        firstHatIndex++
+      }
+      
+      // Final shuffle within the team to randomize positions
+      teamPlayers.sort(() => Math.random() - 0.5)
       
       if (teamPlayers.length === teamSize) {
         newTeams.push({
@@ -339,14 +378,16 @@ function TournamentSetup({ tournament, onSave, onComplete }: TournamentSetupProp
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
                     <strong>Note:</strong> You need at least {teamSize} players to form teams for {teamSize}v{teamSize} format.
+                    Currently have {players.length} player{players.length !== 1 ? 's' : ''}.
                   </p>
                 </div>
               )}
               
-              {Math.abs(firstHatCount - secondHatCount) > teamSize && players.length >= teamSize && (
-                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-800">
-                    <strong>Note:</strong> Uneven skill distribution. Teams will be balanced as much as possible.
+              {players.length >= teamSize && teamSize > 1 && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    <strong>Team Balance:</strong> Teams will be created with balanced skill distribution.
+                    Strong players ({firstHatCount}) and weak players ({secondHatCount}) will be distributed evenly across teams.
                   </p>
                 </div>
               )}

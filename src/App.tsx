@@ -279,6 +279,7 @@ function App() {
                             openDeleteConfirmation(tournament.id, tournament.name || 'Unnamed Tournament')
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title="Delete tournament"
                         >
                           <Trash className="w-4 h-4" />
                         </Button>
