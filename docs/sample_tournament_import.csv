@@ -1,0 +1,26 @@
+tournament_name,tournament_date,tournament_status,rounds,team_size,has_half_time,team_name,player_name,player_alias,player_hat,match_id,match_team1,match_team2,match_score1,match_score2,match_status,match_round,match_duration,match_comments,goal_player_name,goal_team_name,goal_minute
+Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,John Smith,Johnny,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,Sarah Davis,Sar,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,Mike Wilson,Mike,second,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Blue Tigers,Emma Johnson,Em,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Blue Tigers,Tom Brown,Tommy,second,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Blue Tigers,Lisa Green,Lisa,second,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Green Lions,Alex Parker,Alex,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Green Lions,Maya Chen,Maya,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Green Lions,David Kim,Dave,second,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Exciting first match,John Smith,Red Eagles,15
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Exciting first match,Sarah Davis,Red Eagles,32
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Exciting first match,Emma Johnson,Blue Tigers,28
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,1,3,completed,1,2520,Dominant performance by Red Eagles,Alex Parker,Green Lions,12
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,1,3,completed,1,2520,Dominant performance by Red Eagles,John Smith,Red Eagles,18
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,1,3,completed,1,2520,Dominant performance by Red Eagles,Mike Wilson,Red Eagles,25
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,1,3,completed,1,2520,Dominant performance by Red Eagles,Sarah Davis,Red Eagles,38
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,2,2,completed,1,3000,Close draw match,Tom Brown,Blue Tigers,8
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,2,2,completed,1,3000,Close draw match,Maya Chen,Green Lions,22
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,2,2,completed,1,3000,Close draw match,Lisa Green,Blue Tigers,35
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,2,2,completed,1,3000,Close draw match,David Kim,Green Lions,41
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,1,0,completed,2,2400,Second round revenge,Mike Wilson,Red Eagles,23
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,0,2,completed,2,2640,Red Eagles advance to final,John Smith,Red Eagles,14
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Green Lions,Red Eagles,0,2,completed,2,2640,Red Eagles advance to final,Sarah Davis,Red Eagles,29
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,1,1,completed,2,2880,Another close match,Emma Johnson,Blue Tigers,19
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Blue Tigers,Green Lions,1,1,completed,2,2880,Another close match,Alex Parker,Green Lions,33
