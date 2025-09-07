@@ -28,7 +28,7 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Tournament, Team, Player } from "@/App";
+import type { Tournament, Team, Player, Match, Goal } from "@/App";
 
 interface DataImporterProps {
   onImport: (tournaments: Tournament[]) => void;
@@ -43,15 +43,23 @@ interface ImportedData {
 interface MappingConfig {
   tournamentName: string;
   tournamentDate: string;
+  tournamentStatus: string;
+  rounds: string;
+  teamSize: string;
+  hasHalfTime: string;
   teamName: string;
   playerName: string;
   playerAlias: string;
   playerHat: string;
+  matchId: string;
   matchTeam1: string;
   matchTeam2: string;
   matchScore1: string;
   matchScore2: string;
-  matchDate: string;
+  matchStatus: string;
+  matchRound: string;
+  matchDuration: string;
+  matchComments: string;
   goalScorer: string;
   goalTeam: string;
   goalMinute: string;
@@ -74,15 +82,23 @@ export default function DataImporter({
   const [mappingConfig, setMappingConfig] = useState<MappingConfig>({
     tournamentName: "",
     tournamentDate: "",
+    tournamentStatus: "",
+    rounds: "",
+    teamSize: "",
+    hasHalfTime: "",
     teamName: "",
     playerName: "",
     playerAlias: "",
     playerHat: "",
+    matchId: "",
     matchTeam1: "",
     matchTeam2: "",
     matchScore1: "",
     matchScore2: "",
-    matchDate: "",
+    matchStatus: "",
+    matchRound: "",
+    matchDuration: "",
+    matchComments: "",
     goalScorer: "",
     goalTeam: "",
     goalMinute: "",
@@ -145,8 +161,8 @@ export default function DataImporter({
   const generateTournaments = () => {
     const tournaments: Tournament[] = [];
     const tournamentMap = new Map<string, Tournament>();
-
-    // Group data by tournament
+    
+    // Step 1: Create tournaments with enhanced settings
     importedData.forEach((row) => {
       const tournamentName =
         row[mappingConfig.tournamentName] || "Imported Tournament";
@@ -155,26 +171,34 @@ export default function DataImporter({
         new Date().toISOString().split("T")[0];
 
       if (!tournamentMap.has(tournamentName)) {
+        const tournamentStatus = row[mappingConfig.tournamentStatus]?.toLowerCase() || "completed";
+        const rounds = parseInt(row[mappingConfig.rounds]) || 1;
+        const teamSize = parseInt(row[mappingConfig.teamSize]) || 3;
+        const hasHalfTime = row[mappingConfig.hasHalfTime]?.toLowerCase() === "true" || false;
+
         const tournament: Tournament = {
           id: `imported_${Date.now()}_${Math.random()
             .toString(36)
             .substr(2, 9)}`,
           name: tournamentName,
           date: tournamentDate,
-          status: "completed",
+          status: ["setup", "active", "completed"].includes(tournamentStatus) 
+            ? (tournamentStatus as "setup" | "active" | "completed") 
+            : "completed",
           teams: [],
           fixtures: [],
-          rounds: 1,
-          teamSize: 2,
-          hasHalfTime: false,
+          rounds: Math.max(1, Math.min(10, rounds)),
+          teamSize: Math.max(2, Math.min(6, teamSize)),
+          hasHalfTime,
         };
         tournamentMap.set(tournamentName, tournament);
         tournaments.push(tournament);
       }
     });
 
-    // Process teams and players
+    // Step 2: Process teams and players
     const teamMap = new Map<string, Team>();
+    const playerMap = new Map<string, Player>();
 
     importedData.forEach((row) => {
       const tournamentName =
@@ -190,6 +214,9 @@ export default function DataImporter({
 
       if (teamName && playerName) {
         const teamKey = `${tournamentName}_${teamName}`;
+        const playerKey = `${teamKey}_${playerName}`;
+        
+        // Create team if it doesn't exist
         if (!teamMap.has(teamKey)) {
           const team: Team = {
             id: `team_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -211,8 +238,9 @@ export default function DataImporter({
           tournament?.teams.push(team);
         }
 
+        // Create player if it doesn't exist
         const team = teamMap.get(teamKey);
-        if (team && !team.players.find((p) => p.name === playerName)) {
+        if (team && !playerMap.has(playerKey)) {
           const player: Player = {
             id: `player_${Date.now()}_${Math.random()
               .toString(36)
@@ -223,6 +251,126 @@ export default function DataImporter({
             hat: playerHat as "first" | "second",
           };
           team.players.push(player);
+          playerMap.set(playerKey, player);
+        }
+      }
+    });
+
+    // Step 3: Process matches
+    const matchMap = new Map<string, Match>();
+    
+    importedData.forEach((row) => {
+      const tournamentName =
+        row[mappingConfig.tournamentName] || "Imported Tournament";
+      const team1Name = row[mappingConfig.matchTeam1];
+      const team2Name = row[mappingConfig.matchTeam2];
+      const score1 = parseInt(row[mappingConfig.matchScore1]) || 0;
+      const score2 = parseInt(row[mappingConfig.matchScore2]) || 0;
+
+      if (team1Name && team2Name && team1Name !== team2Name) {
+        const matchKey = `${tournamentName}_${team1Name}_${team2Name}`;
+        const reverseMatchKey = `${tournamentName}_${team2Name}_${team1Name}`;
+        
+        // Check if match already exists (avoid duplicates)
+        if (!matchMap.has(matchKey) && !matchMap.has(reverseMatchKey)) {
+          const tournament = tournamentMap.get(tournamentName);
+          const team1 = teamMap.get(`${tournamentName}_${team1Name}`);
+          const team2 = teamMap.get(`${tournamentName}_${team2Name}`);
+
+          if (tournament && team1 && team2) {
+            const matchStatus = row[mappingConfig.matchStatus]?.toLowerCase() || "completed";
+            const matchRound = parseInt(row[mappingConfig.matchRound]) || 1;
+            const matchDuration = parseInt(row[mappingConfig.matchDuration]) || 0;
+            const matchComments = row[mappingConfig.matchComments] || "";
+            const matchId = row[mappingConfig.matchId] || 
+              `match_${Date.now()}_r${matchRound}_${matchMap.size + 1}`;
+
+            const match: Match = {
+              id: matchId,
+              team1: team1,
+              team2: team2,
+              score1: Math.max(0, score1),
+              score2: Math.max(0, score2),
+              status: ["pending", "live", "completed"].includes(matchStatus)
+                ? (matchStatus as "pending" | "live" | "completed")
+                : "completed",
+              round: Math.max(1, matchRound),
+              duration: Math.max(0, Math.min(7200, matchDuration)),
+              goals: [],
+              comments: matchComments,
+            };
+
+            matchMap.set(matchKey, match);
+            tournament.fixtures.push(match);
+
+            // Update team stats
+            if (match.status === "completed") {
+              team1.stats.played++;
+              team2.stats.played++;
+              team1.stats.goalsFor += score1;
+              team1.stats.goalsAgainst += score2;
+              team2.stats.goalsFor += score2;
+              team2.stats.goalsAgainst += score1;
+
+              if (score1 > score2) {
+                team1.stats.won++;
+                team1.stats.points += 3;
+                team2.stats.lost++;
+              } else if (score2 > score1) {
+                team2.stats.won++;
+                team2.stats.points += 3;
+                team1.stats.lost++;
+              } else {
+                team1.stats.drawn++;
+                team2.stats.drawn++;
+                team1.stats.points += 1;
+                team2.stats.points += 1;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Step 4: Process goals
+    importedData.forEach((row) => {
+      const tournamentName =
+        row[mappingConfig.tournamentName] || "Imported Tournament";
+      const goalPlayerName = row[mappingConfig.goalScorer];
+      const goalTeamName = row[mappingConfig.goalTeam];
+      const goalMinute = parseInt(row[mappingConfig.goalMinute]) || 0;
+      const team1Name = row[mappingConfig.matchTeam1];
+      const team2Name = row[mappingConfig.matchTeam2];
+
+      if (goalPlayerName && goalTeamName && goalMinute > 0 && team1Name && team2Name) {
+        // Find the match this goal belongs to
+        const matchKey = `${tournamentName}_${team1Name}_${team2Name}`;
+        const reverseMatchKey = `${tournamentName}_${team2Name}_${team1Name}`;
+        const match = matchMap.get(matchKey) || matchMap.get(reverseMatchKey);
+        
+        if (match) {
+          // Find the player
+          const playerKey = `${tournamentName}_${goalTeamName}_${goalPlayerName}`;
+          const player = playerMap.get(playerKey);
+          const team = teamMap.get(`${tournamentName}_${goalTeamName}`);
+
+          if (player && team) {
+            // Verify the goal team is participating in this match
+            const isValidTeam = match.team1.name === goalTeamName || match.team2.name === goalTeamName;
+            
+            if (isValidTeam) {
+              const goal: Goal = {
+                id: `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                playerId: player.id,
+                playerName: player.name,
+                teamId: team.id,
+                minute: Math.max(1, Math.min(999, goalMinute)),
+              };
+
+              match.goals.push(goal);
+              player.goals++;
+            }
+          }
         }
       }
     });
@@ -246,15 +394,23 @@ export default function DataImporter({
     setMappingConfig({
       tournamentName: "",
       tournamentDate: "",
+      tournamentStatus: "",
+      rounds: "",
+      teamSize: "",
+      hasHalfTime: "",
       teamName: "",
       playerName: "",
       playerAlias: "",
       playerHat: "",
+      matchId: "",
       matchTeam1: "",
       matchTeam2: "",
       matchScore1: "",
       matchScore2: "",
-      matchDate: "",
+      matchStatus: "",
+      matchRound: "",
+      matchDuration: "",
+      matchComments: "",
       goalScorer: "",
       goalTeam: "",
       goalMinute: "",
@@ -263,17 +419,20 @@ export default function DataImporter({
   };
 
   const downloadSampleCSV = () => {
-    const sampleData = `Tournament Name,Date,Team Name,Player Name,Player Alias,Player Hat
-Doma Football Day,2024-08-23,Red Eagles,John Smith,Johnny,first
-Doma Football Day,2024-08-23,Red Eagles,Sarah Davis,Sar,strong
-Doma Football Day,2024-08-23,Blue Tigers,Mike Johnson,Mike,second
-Doma Football Day,2024-08-23,Blue Tigers,Emma Wilson,Em,weak`;
+    const sampleData = `tournament_name,tournament_date,tournament_status,rounds,team_size,has_half_time,team_name,player_name,player_alias,player_hat,match_id,match_team1,match_team2,match_score1,match_score2,match_status,match_round,match_duration,match_comments,goal_player_name,goal_team_name,goal_minute
+Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,John Smith,Johnny,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,Sarah Davis,Sar,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Blue Tigers,Emma Johnson,Em,first,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,Blue Tigers,Tom Brown,Tommy,second,,,,,,,,,,,
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Great match!,John Smith,Red Eagles,15
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Great match!,Sarah Davis,Red Eagles,32
+Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,completed,1,2700,Great match!,Emma Johnson,Blue Tigers,28`;
 
     const blob = new Blob([sampleData], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "sample_tournament_data.csv";
+    a.download = "sample_tournament_import.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -444,6 +603,102 @@ Doma Football Day,2024-08-23,Blue Tigers,Emma Wilson,Em,weak`;
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label className="text-sm">Tournament Status</Label>
+              <Select
+                value={mappingConfig.tournamentStatus}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({
+                    ...prev,
+                    tournamentStatus: value,
+                  }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Rounds</Label>
+              <Select
+                value={mappingConfig.rounds}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({
+                    ...prev,
+                    rounds: value,
+                  }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Team Size</Label>
+              <Select
+                value={mappingConfig.teamSize}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({
+                    ...prev,
+                    teamSize: value,
+                  }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Has Half Time</Label>
+              <Select
+                value={mappingConfig.hasHalfTime}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({
+                    ...prev,
+                    hasHalfTime: value,
+                  }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
@@ -525,6 +780,274 @@ Doma Football Day,2024-08-23,Blue Tigers,Emma Wilson,Em,weak`;
                 value={mappingConfig.playerHat}
                 onValueChange={(value) =>
                   setMappingConfig((prev) => ({ ...prev, playerHat: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Match Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-sm">Match ID (Optional)</Label>
+              <Select
+                value={mappingConfig.matchId}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchId: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Team 1</Label>
+              <Select
+                value={mappingConfig.matchTeam1}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchTeam1: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Team 2</Label>
+              <Select
+                value={mappingConfig.matchTeam2}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchTeam2: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Team 1 Score</Label>
+              <Select
+                value={mappingConfig.matchScore1}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchScore1: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Team 2 Score</Label>
+              <Select
+                value={mappingConfig.matchScore2}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchScore2: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Match Status</Label>
+              <Select
+                value={mappingConfig.matchStatus}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchStatus: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Match Round</Label>
+              <Select
+                value={mappingConfig.matchRound}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchRound: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Match Duration (seconds)</Label>
+              <Select
+                value={mappingConfig.matchDuration}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchDuration: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Match Comments</Label>
+              <Select
+                value={mappingConfig.matchComments}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, matchComments: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Goal Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-sm">Goal Scorer</Label>
+              <Select
+                value={mappingConfig.goalScorer}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, goalScorer: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Goal Team</Label>
+              <Select
+                value={mappingConfig.goalTeam}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, goalTeam: value }))
+                }>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {columns.map((col) => (
+                    <SelectItem key={col} value={col}>
+                      {col}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm">Goal Minute</Label>
+              <Select
+                value={mappingConfig.goalMinute}
+                onValueChange={(value) =>
+                  setMappingConfig((prev) => ({ ...prev, goalMinute: value }))
                 }>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select column" />
