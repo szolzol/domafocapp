@@ -591,7 +591,7 @@ function App() {
       </div>
 
       <Toaster
-        position="top-right"
+        position="top-center"
         toastOptions={{
           style: {
             background: "hsl(var(--background))",
