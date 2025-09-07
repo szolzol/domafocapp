@@ -1,284 +1,303 @@
 {
-  "format_version": "1.0",
-  "description": "Domafocapp Firestore Import JSON Template",
-  "import_structure": {
-    "tournaments": {
-      "document_id_example": "1735139234567",
-      "document_structure": {
-        "name": "Summer Cup 2024",
-        "date": "2024-08-15",
-        "status": "completed",
-        "rounds": 2,
-        "teamSize": 3,
-        "hasHalfTime": true,
-        "updatedAt": {
-          "_type": "timestamp",
-          "_value": "2024-08-15T10:00:00Z"
+    "format_version": "1.0",
+    "description": "Domafocapp Firestore Import JSON Template",
+    "import_structure": {
+        "tournaments": {
+            "document_id_example": "1735139234567",
+            "document_structure": {
+                "name": "Summer Cup 2024",
+                "date": "2024-08-15",
+                "status": "completed",
+                "rounds": 2,
+                "teamSize": 3,
+                "hasHalfTime": true,
+                "updatedAt": {
+                    "_type": "timestamp",
+                    "_value": "2024-08-15T10:00:00Z"
+                }
+            }
+        },
+        "teams": {
+            "document_id_example": "team_1735139234567_0",
+            "document_structure": {
+                "tournamentId": "1735139234567",
+                "name": "Red Eagles",
+                "stats": {
+                    "played": 4,
+                    "won": 3,
+                    "drawn": 1,
+                    "lost": 0,
+                    "goalsFor": 8,
+                    "goalsAgainst": 3,
+                    "points": 10
+                }
+            }
+        },
+        "players": {
+            "document_id_example": "1735139234567_0_0_first",
+            "document_structure": {
+                "teamId": "team_1735139234567_0",
+                "name": "John Smith",
+                "alias": "Johnny",
+                "hat": "first",
+                "goals": 5
+            }
+        },
+        "matches": {
+            "document_id_example": "match_1735139234567_r1_1",
+            "document_structure": {
+                "tournamentId": "1735139234567",
+                "team1": {
+                    "id": "team_1735139234567_0",
+                    "name": "Red Eagles"
+                },
+                "team2": {
+                    "id": "team_1735139234567_1",
+                    "name": "Blue Tigers"
+                },
+                "score1": 2,
+                "score2": 1,
+                "status": "completed",
+                "round": 1,
+                "duration": 2700,
+                "comments": "Great match!"
+            }
+        },
+        "goals": {
+            "document_id_example": "1735139234568",
+            "document_structure": {
+                "matchId": "match_1735139234567_r1_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_0_first",
+                "playerName": "John Smith",
+                "teamId": "team_1735139234567_0",
+                "minute": 15
+            }
         }
-      }
     },
-    "teams": {
-      "document_id_example": "team_1735139234567_0",
-      "document_structure": {
-        "tournamentId": "1735139234567",
-        "name": "Red Eagles",
-        "stats": {
-          "played": 4,
-          "won": 3,
-          "drawn": 1,
-          "lost": 0,
-          "goalsFor": 8,
-          "goalsAgainst": 3,
-          "points": 10
+    "sample_batch_import": {
+        "tournaments": {
+            "1735139234567": {
+                "name": "Summer Cup 2024",
+                "date": "2024-08-15",
+                "status": "completed",
+                "rounds": 2,
+                "teamSize": 3,
+                "hasHalfTime": true,
+                "updatedAt": "2024-08-15T10:00:00Z"
+            }
+        },
+        "teams": {
+            "team_1735139234567_0": {
+                "tournamentId": "1735139234567",
+                "name": "Red Eagles",
+                "stats": {
+                    "played": 2,
+                    "won": 2,
+                    "drawn": 0,
+                    "lost": 0,
+                    "goalsFor": 5,
+                    "goalsAgainst": 1,
+                    "points": 6
+                }
+            },
+            "team_1735139234567_1": {
+                "tournamentId": "1735139234567",
+                "name": "Blue Tigers",
+                "stats": {
+                    "played": 2,
+                    "won": 0,
+                    "drawn": 0,
+                    "lost": 2,
+                    "goalsFor": 1,
+                    "goalsAgainst": 3,
+                    "points": 0
+                }
+            }
+        },
+        "players": {
+            "1735139234567_0_0_first": {
+                "teamId": "team_1735139234567_0",
+                "name": "John Smith",
+                "alias": "Johnny",
+                "hat": "first",
+                "goals": 2
+            },
+            "1735139234567_0_1_first": {
+                "teamId": "team_1735139234567_0",
+                "name": "Sarah Davis",
+                "alias": "Sar",
+                "hat": "first",
+                "goals": 2
+            },
+            "1735139234567_0_2_second": {
+                "teamId": "team_1735139234567_0",
+                "name": "Mike Wilson",
+                "alias": "Mike",
+                "hat": "second",
+                "goals": 1
+            },
+            "1735139234567_1_0_first": {
+                "teamId": "team_1735139234567_1",
+                "name": "Emma Johnson",
+                "alias": "Em",
+                "hat": "first",
+                "goals": 1
+            },
+            "1735139234567_1_1_second": {
+                "teamId": "team_1735139234567_1",
+                "name": "Tom Brown",
+                "alias": "Tommy",
+                "hat": "second",
+                "goals": 0
+            },
+            "1735139234567_1_2_second": {
+                "teamId": "team_1735139234567_1",
+                "name": "Lisa Green",
+                "alias": "Lisa",
+                "hat": "second",
+                "goals": 0
+            }
+        },
+        "matches": {
+            "match_1735139234567_r1_1": {
+                "tournamentId": "1735139234567",
+                "team1": {
+                    "id": "team_1735139234567_0",
+                    "name": "Red Eagles"
+                },
+                "team2": {
+                    "id": "team_1735139234567_1",
+                    "name": "Blue Tigers"
+                },
+                "score1": 2,
+                "score2": 1,
+                "status": "completed",
+                "round": 1,
+                "duration": 2700,
+                "comments": "Exciting first match"
+            },
+            "match_1735139234567_r2_1": {
+                "tournamentId": "1735139234567",
+                "team1": {
+                    "id": "team_1735139234567_0",
+                    "name": "Red Eagles"
+                },
+                "team2": {
+                    "id": "team_1735139234567_1",
+                    "name": "Blue Tigers"
+                },
+                "score1": 3,
+                "score2": 0,
+                "status": "completed",
+                "round": 2,
+                "duration": 2400,
+                "comments": "Dominant second round performance"
+            }
+        },
+        "goals": {
+            "1735139234568": {
+                "matchId": "match_1735139234567_r1_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_0_first",
+                "playerName": "John Smith",
+                "teamId": "team_1735139234567_0",
+                "minute": 15
+            },
+            "1735139234569": {
+                "matchId": "match_1735139234567_r1_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_1_first",
+                "playerName": "Sarah Davis",
+                "teamId": "team_1735139234567_0",
+                "minute": 32
+            },
+            "1735139234570": {
+                "matchId": "match_1735139234567_r1_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_1_0_first",
+                "playerName": "Emma Johnson",
+                "teamId": "team_1735139234567_1",
+                "minute": 28
+            },
+            "1735139234571": {
+                "matchId": "match_1735139234567_r2_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_0_first",
+                "playerName": "John Smith",
+                "teamId": "team_1735139234567_0",
+                "minute": 8
+            },
+            "1735139234572": {
+                "matchId": "match_1735139234567_r2_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_1_first",
+                "playerName": "Sarah Davis",
+                "teamId": "team_1735139234567_0",
+                "minute": 23
+            },
+            "1735139234573": {
+                "matchId": "match_1735139234567_r2_1",
+                "tournamentId": "1735139234567",
+                "playerId": "1735139234567_0_2_second",
+                "playerName": "Mike Wilson",
+                "teamId": "team_1735139234567_0",
+                "minute": 35
+            }
         }
-      }
     },
-    "players": {
-      "document_id_example": "1735139234567_0_0_first",
-      "document_structure": {
-        "teamId": "team_1735139234567_0",
-        "name": "John Smith",
-        "alias": "Johnny",
-        "hat": "first",
-        "goals": 5
-      }
-    },
-    "matches": {
-      "document_id_example": "match_1735139234567_r1_1",
-      "document_structure": {
-        "tournamentId": "1735139234567",
-        "team1": {
-          "id": "team_1735139234567_0",
-          "name": "Red Eagles"
+    "validation_rules": {
+        "required_fields": {
+            "tournaments": [
+                "name",
+                "date"
+            ],
+            "teams": [
+                "tournamentId",
+                "name"
+            ],
+            "players": [
+                "teamId",
+                "name"
+            ],
+            "matches": [
+                "tournamentId",
+                "team1",
+                "team2"
+            ],
+            "goals": [
+                "matchId",
+                "tournamentId",
+                "playerId",
+                "teamId",
+                "minute"
+            ]
         },
-        "team2": {
-          "id": "team_1735139234567_1",
-          "name": "Blue Tigers"
+        "data_types": {
+            "tournament_date": "ISO date string (YYYY-MM-DD)",
+            "scores": "non-negative integers",
+            "duration": "seconds (0-7200)",
+            "minute": "positive integer (1-999)",
+            "hat": "enum: 'first' or 'second'",
+            "status": "enum: 'setup', 'active', 'completed'"
         },
-        "score1": 2,
-        "score2": 1,
-        "status": "completed",
-        "round": 1,
-        "duration": 2700,
-        "comments": "Great match!"
-      }
-    },
-    "goals": {
-      "document_id_example": "1735139234568",
-      "document_structure": {
-        "matchId": "match_1735139234567_r1_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_0_first",
-        "playerName": "John Smith",
-        "teamId": "team_1735139234567_0",
-        "minute": 15
-      }
-    }
-  },
-  "sample_batch_import": {
-    "tournaments": {
-      "1735139234567": {
-        "name": "Summer Cup 2024",
-        "date": "2024-08-15",
-        "status": "completed",
-        "rounds": 2,
-        "teamSize": 3,
-        "hasHalfTime": true,
-        "updatedAt": "2024-08-15T10:00:00Z"
-      }
-    },
-    "teams": {
-      "team_1735139234567_0": {
-        "tournamentId": "1735139234567",
-        "name": "Red Eagles",
-        "stats": {
-          "played": 2,
-          "won": 2,
-          "drawn": 0,
-          "lost": 0,
-          "goalsFor": 5,
-          "goalsAgainst": 1,
-          "points": 6
+        "constraints": {
+            "teamSize": "2-6 players per team",
+            "rounds": "1-10 rounds per tournament",
+            "player_names": "unique within team",
+            "team_names": "unique within tournament"
         }
-      },
-      "team_1735139234567_1": {
-        "tournamentId": "1735139234567",
-        "name": "Blue Tigers",
-        "stats": {
-          "played": 2,
-          "won": 0,
-          "drawn": 0,
-          "lost": 2,
-          "goalsFor": 1,
-          "goalsAgainst": 3,
-          "points": 0
+    },
+    "import_instructions": {
+        "firebase_cli": [
+            "firebase firestore:import ./import_data/ --collection-ids tournaments,teams,players,matches,goals",
+            "firebase firestore:import ./import_data/tournaments --collection-ids tournaments"
+        ],
+        "batch_processing": {
+            "step_1": "Create directory structure: import_data/{tournaments,teams,players,matches,goals}/",
+            "step_2": "Place JSON files in respective collection directories",
+            "step_3": "Run Firebase CLI import command",
+            "step_4": "Verify data integrity using app's data cleanup utilities"
         }
-      }
-    },
-    "players": {
-      "1735139234567_0_0_first": {
-        "teamId": "team_1735139234567_0",
-        "name": "John Smith",
-        "alias": "Johnny",
-        "hat": "first",
-        "goals": 2
-      },
-      "1735139234567_0_1_first": {
-        "teamId": "team_1735139234567_0",
-        "name": "Sarah Davis",
-        "alias": "Sar",
-        "hat": "first",
-        "goals": 2
-      },
-      "1735139234567_0_2_second": {
-        "teamId": "team_1735139234567_0",
-        "name": "Mike Wilson",
-        "alias": "Mike",
-        "hat": "second",
-        "goals": 1
-      },
-      "1735139234567_1_0_first": {
-        "teamId": "team_1735139234567_1",
-        "name": "Emma Johnson",
-        "alias": "Em",
-        "hat": "first",
-        "goals": 1
-      },
-      "1735139234567_1_1_second": {
-        "teamId": "team_1735139234567_1",
-        "name": "Tom Brown",
-        "alias": "Tommy",
-        "hat": "second",
-        "goals": 0
-      },
-      "1735139234567_1_2_second": {
-        "teamId": "team_1735139234567_1",
-        "name": "Lisa Green",
-        "alias": "Lisa",
-        "hat": "second",
-        "goals": 0
-      }
-    },
-    "matches": {
-      "match_1735139234567_r1_1": {
-        "tournamentId": "1735139234567",
-        "team1": {
-          "id": "team_1735139234567_0",
-          "name": "Red Eagles"
-        },
-        "team2": {
-          "id": "team_1735139234567_1",
-          "name": "Blue Tigers"
-        },
-        "score1": 2,
-        "score2": 1,
-        "status": "completed",
-        "round": 1,
-        "duration": 2700,
-        "comments": "Exciting first match"
-      },
-      "match_1735139234567_r2_1": {
-        "tournamentId": "1735139234567",
-        "team1": {
-          "id": "team_1735139234567_0",
-          "name": "Red Eagles"
-        },
-        "team2": {
-          "id": "team_1735139234567_1",
-          "name": "Blue Tigers"
-        },
-        "score1": 3,
-        "score2": 0,
-        "status": "completed",
-        "round": 2,
-        "duration": 2400,
-        "comments": "Dominant second round performance"
-      }
-    },
-    "goals": {
-      "1735139234568": {
-        "matchId": "match_1735139234567_r1_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_0_first",
-        "playerName": "John Smith",
-        "teamId": "team_1735139234567_0",
-        "minute": 15
-      },
-      "1735139234569": {
-        "matchId": "match_1735139234567_r1_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_1_first",
-        "playerName": "Sarah Davis",
-        "teamId": "team_1735139234567_0",
-        "minute": 32
-      },
-      "1735139234570": {
-        "matchId": "match_1735139234567_r1_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_1_0_first",
-        "playerName": "Emma Johnson",
-        "teamId": "team_1735139234567_1",
-        "minute": 28
-      },
-      "1735139234571": {
-        "matchId": "match_1735139234567_r2_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_0_first",
-        "playerName": "John Smith",
-        "teamId": "team_1735139234567_0",
-        "minute": 8
-      },
-      "1735139234572": {
-        "matchId": "match_1735139234567_r2_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_1_first",
-        "playerName": "Sarah Davis",
-        "teamId": "team_1735139234567_0",
-        "minute": 23
-      },
-      "1735139234573": {
-        "matchId": "match_1735139234567_r2_1",
-        "tournamentId": "1735139234567",
-        "playerId": "1735139234567_0_2_second",
-        "playerName": "Mike Wilson",
-        "teamId": "team_1735139234567_0",
-        "minute": 35
-      }
     }
-  },
-  "validation_rules": {
-    "required_fields": {
-      "tournaments": ["name", "date"],
-      "teams": ["tournamentId", "name"],
-      "players": ["teamId", "name"],
-      "matches": ["tournamentId", "team1", "team2"],
-      "goals": ["matchId", "tournamentId", "playerId", "teamId", "minute"]
-    },
-    "data_types": {
-      "tournament_date": "ISO date string (YYYY-MM-DD)",
-      "scores": "non-negative integers",
-      "duration": "seconds (0-7200)",
-      "minute": "positive integer (1-999)",
-      "hat": "enum: 'first' or 'second'",
-      "status": "enum: 'setup', 'active', 'completed'"
-    },
-    "constraints": {
-      "teamSize": "2-6 players per team",
-      "rounds": "1-10 rounds per tournament",
-      "player_names": "unique within team",
-      "team_names": "unique within tournament"
-    }
-  },
-  "import_instructions": {
-    "firebase_cli": [
-      "firebase firestore:import ./import_data/ --collection-ids tournaments,teams,players,matches,goals",
-      "firebase firestore:import ./import_data/tournaments --collection-ids tournaments"
-    ],
-    "batch_processing": {
-      "step_1": "Create directory structure: import_data/{tournaments,teams,players,matches,goals}/",
-      "step_2": "Place JSON files in respective collection directories",
-      "step_3": "Run Firebase CLI import command",
-      "step_4": "Verify data integrity using app's data cleanup utilities"
-    }
-  }
 }

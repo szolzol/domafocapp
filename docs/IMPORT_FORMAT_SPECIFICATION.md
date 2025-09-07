@@ -1,20 +1,23 @@
 # Domafocapp Firestore Import Format Specification
 
 ## Overview
+
 This document defines the comprehensive import file format for the Domafocapp football tournament management system. Use this specification to convert unstructured tournament data into a format compatible with Firestore mass import.
 
 ## Database Schema Structure
 
 ### Firestore Collections
+
 ```
 tournaments/          # Main tournament documents
 teams/               # Team documents with tournamentId reference
-players/             # Player documents with teamId reference  
+players/             # Player documents with teamId reference
 matches/             # Match documents with tournamentId reference
 goals/               # Goal documents with matchId and tournamentId references
 ```
 
 ### Data Relationships
+
 ```
 Tournament (1) → Teams (N) → Players (N)
 Tournament (1) → Matches (N) → Goals (N)
@@ -29,6 +32,7 @@ Goal (1) → Player, Team, Match (references)
 **Filename**: `tournament_import.csv`
 
 **Required Columns**:
+
 ```csv
 tournament_name,tournament_date,tournament_status,rounds,team_size,has_half_time,
 team_name,player_name,player_alias,player_hat,
@@ -38,32 +42,33 @@ goal_player_name,goal_team_name,goal_minute
 
 **Column Definitions**:
 
-| Column | Type | Required | Values | Description |
-|--------|------|----------|--------|-------------|
-| `tournament_name` | string | Yes | Any text | Tournament display name |
-| `tournament_date` | string | Yes | YYYY-MM-DD | Tournament date in ISO format |
-| `tournament_status` | string | No | setup/active/completed | Default: "completed" |
-| `rounds` | number | No | 1-10 | Number of rounds, Default: 1 |
-| `team_size` | number | No | 2-6 | Players per team (2v2, 3v3, etc.), Default: 2 |
-| `has_half_time` | boolean | No | true/false | Whether matches have half-time, Default: false |
-| `team_name` | string | Yes | Any text | Team display name |
-| `player_name` | string | Yes | Any text | Player full name |
-| `player_alias` | string | No | Any text | Player nickname/alias, Default: player_name |
-| `player_hat` | string | No | first/second/strong/weak | Player skill level, Default: "second" |
-| `match_id` | string | No | Any text | Optional match identifier for grouping |
-| `match_team1` | string | No | Team name | First team in match |
-| `match_team2` | string | No | Team name | Second team in match |
-| `match_score1` | number | No | 0-999 | Goals scored by team1, Default: 0 |
-| `match_score2` | number | No | 0-999 | Goals scored by team2, Default: 0 |
-| `match_status` | string | No | pending/live/completed | Default: "completed" |
-| `match_round` | number | No | 1-10 | Match round number, Default: 1 |
-| `match_duration` | number | No | 0-7200 | Match duration in seconds, Default: 0 |
-| `match_comments` | string | No | Any text | Additional match notes |
-| `goal_player_name` | string | No | Player name | Goal scorer (must match player_name) |
-| `goal_team_name` | string | No | Team name | Goal scorer's team (must match team_name) |
-| `goal_minute` | number | No | 1-999 | Minute when goal was scored |
+| Column              | Type    | Required | Values                   | Description                                    |
+| ------------------- | ------- | -------- | ------------------------ | ---------------------------------------------- |
+| `tournament_name`   | string  | Yes      | Any text                 | Tournament display name                        |
+| `tournament_date`   | string  | Yes      | YYYY-MM-DD               | Tournament date in ISO format                  |
+| `tournament_status` | string  | No       | setup/active/completed   | Default: "completed"                           |
+| `rounds`            | number  | No       | 1-10                     | Number of rounds, Default: 1                   |
+| `team_size`         | number  | No       | 2-6                      | Players per team (2v2, 3v3, etc.), Default: 2  |
+| `has_half_time`     | boolean | No       | true/false               | Whether matches have half-time, Default: false |
+| `team_name`         | string  | Yes      | Any text                 | Team display name                              |
+| `player_name`       | string  | Yes      | Any text                 | Player full name                               |
+| `player_alias`      | string  | No       | Any text                 | Player nickname/alias, Default: player_name    |
+| `player_hat`        | string  | No       | first/second/strong/weak | Player skill level, Default: "second"          |
+| `match_id`          | string  | No       | Any text                 | Optional match identifier for grouping         |
+| `match_team1`       | string  | No       | Team name                | First team in match                            |
+| `match_team2`       | string  | No       | Team name                | Second team in match                           |
+| `match_score1`      | number  | No       | 0-999                    | Goals scored by team1, Default: 0              |
+| `match_score2`      | number  | No       | 0-999                    | Goals scored by team2, Default: 0              |
+| `match_status`      | string  | No       | pending/live/completed   | Default: "completed"                           |
+| `match_round`       | number  | No       | 1-10                     | Match round number, Default: 1                 |
+| `match_duration`    | number  | No       | 0-7200                   | Match duration in seconds, Default: 0          |
+| `match_comments`    | string  | No       | Any text                 | Additional match notes                         |
+| `goal_player_name`  | string  | No       | Player name              | Goal scorer (must match player_name)           |
+| `goal_team_name`    | string  | No       | Team name                | Goal scorer's team (must match team_name)      |
+| `goal_minute`       | number  | No       | 1-999                    | Minute when goal was scored                    |
 
 **Sample Data**:
+
 ```csv
 tournament_name,tournament_date,tournament_status,rounds,team_size,has_half_time,team_name,player_name,player_alias,player_hat,match_id,match_team1,match_team2,match_score1,match_score2,match_status,match_round,match_duration,match_comments,goal_player_name,goal_team_name,goal_minute
 Summer Cup 2024,2024-08-15,completed,2,3,true,Red Eagles,John Smith,Johnny,first,,,,,,,,,,,
@@ -82,12 +87,14 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
 **Filename**: `tournament_import.xlsx`
 
 **Sheet 1: tournaments**
+
 ```
 tournament_id,name,date,status,rounds,team_size,has_half_time
 summer_2024,Summer Cup 2024,2024-08-15,completed,2,3,true
 ```
 
 **Sheet 2: teams**
+
 ```
 team_id,tournament_id,name
 team_red,summer_2024,Red Eagles
@@ -95,6 +102,7 @@ team_blue,summer_2024,Blue Tigers
 ```
 
 **Sheet 3: players**
+
 ```
 player_id,team_id,name,alias,hat,goals
 p1,team_red,John Smith,Johnny,first,5
@@ -103,12 +111,14 @@ p3,team_blue,Emma Johnson,Em,first,2
 ```
 
 **Sheet 4: matches**
+
 ```
 match_id,tournament_id,team1_id,team2_id,score1,score2,status,round,duration,comments
 m1,summer_2024,team_red,team_blue,2,1,completed,1,2700,Great match!
 ```
 
 **Sheet 5: goals**
+
 ```
 goal_id,match_id,tournament_id,player_id,player_name,team_id,minute
 g1,m1,summer_2024,p1,John Smith,team_red,15
@@ -118,6 +128,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 ## ID Generation Rules
 
 ### Current System IDs
+
 - **Tournament ID**: `Date.now().toString()` (e.g., "1735139234567")
 - **Team ID**: `team_${Date.now()}_${index}` (e.g., "team_1735139234567_0")
 - **Player ID**: `${Date.now()}_${teamIndex}_${playerIndex}_${hat}` (e.g., "1735139234567_0_1_first")
@@ -125,6 +136,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 - **Goal ID**: `Date.now().toString()` (e.g., "1735139234568")
 
 ### Import ID Strategy
+
 1. **If IDs provided**: Use provided IDs with validation
 2. **If IDs missing**: Auto-generate using current system patterns
 3. **Duplicate handling**: Add random suffix to prevent conflicts
@@ -132,6 +144,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 ## Data Validation Rules
 
 ### Required Data
+
 - Tournament must have: name, date, at least 2 teams
 - Team must have: name, at least 1 player
 - Player must have: name (alias defaults to name)
@@ -139,6 +152,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 - Goal must have: valid player, team, and minute
 
 ### Data Constraints
+
 - `tournament_date`: Valid ISO date format
 - `team_size`: 2-6 players
 - `rounds`: 1-10 rounds
@@ -148,6 +162,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 - `goal_minute`: 1-999 minutes
 
 ### Data Integrity
+
 - Goal player must exist in goal team
 - Goal team must be one of the match teams
 - Match teams must exist in tournament
@@ -158,6 +173,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 ### For Unstructured Excel Processing:
 
 1. **Identify Data Types**:
+
    ```
    - Tournament info: Names, dates, locations
    - Team info: Team names, player lists
@@ -166,6 +182,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
    ```
 
 2. **Data Mapping Strategy**:
+
    ```
    - Look for tournament identifiers in headers/titles
    - Identify team groupings (often in columns or sections)
@@ -175,6 +192,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
    ```
 
 3. **Common Patterns to Recognize**:
+
    ```
    - Date formats: "15/08/2024", "Aug 15, 2024", "2024-08-15"
    - Score formats: "2-1", "2:1", "2 vs 1", "Team A 2 Team B 1"
@@ -194,6 +212,7 @@ g2,m1,summer_2024,p2,Sarah Davis,team_red,32
 ## Firestore Import Commands
 
 ### Using Firebase CLI
+
 ```bash
 # Import tournaments collection
 firebase firestore:import ./import_data/tournaments --collection-ids tournaments
@@ -203,6 +222,7 @@ firebase firestore:import ./import_data/
 ```
 
 ### Batch Import Structure
+
 ```
 import_data/
 ├── tournaments/
@@ -220,6 +240,7 @@ import_data/
 ## Example JSON Documents
 
 ### Tournament Document
+
 ```json
 {
   "name": "Summer Cup 2024",
@@ -233,6 +254,7 @@ import_data/
 ```
 
 ### Team Document
+
 ```json
 {
   "tournamentId": "1735139234567",
@@ -250,6 +272,7 @@ import_data/
 ```
 
 ### Player Document
+
 ```json
 {
   "teamId": "team_1735139234567_0",
@@ -261,6 +284,7 @@ import_data/
 ```
 
 ### Match Document
+
 ```json
 {
   "tournamentId": "1735139234567",
@@ -269,7 +293,7 @@ import_data/
     "name": "Red Eagles"
   },
   "team2": {
-    "id": "team_1735139234567_1", 
+    "id": "team_1735139234567_1",
     "name": "Blue Tigers"
   },
   "score1": 2,
@@ -282,6 +306,7 @@ import_data/
 ```
 
 ### Goal Document
+
 ```json
 {
   "matchId": "match_1735139234567_r1_1",
@@ -296,12 +321,14 @@ import_data/
 ## Error Handling
 
 ### Common Issues
+
 1. **Missing required fields**: Auto-generate or use defaults
 2. **Invalid references**: Create missing entities or skip invalid data
 3. **Duplicate data**: Use latest version or merge intelligently
 4. **Format mismatches**: Convert to expected format or flag for review
 
 ### Validation Warnings
+
 - Non-standard date formats
 - Unknown player skill levels
 - Missing match participants
