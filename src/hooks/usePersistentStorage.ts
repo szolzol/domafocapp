@@ -56,16 +56,16 @@ export function useTournamentStorage() {
     try {
       // Try to load from Firestore first
       const cloudTournaments = await firestoreService.getAllTournaments();
-      
+
       // Validate loaded data
-      const validTournaments = cloudTournaments.filter(tournament => {
+      const validTournaments = cloudTournaments.filter((tournament) => {
         if (!tournament.id || !tournament.name) {
           console.warn("Invalid tournament found:", tournament);
           return false;
         }
         return true;
       });
-      
+
       setTournaments(validTournaments);
       setUseFirestore(true);
 
@@ -74,7 +74,7 @@ export function useTournamentStorage() {
         console.log("Migrating local tournaments to Firestore...");
         await migrateToFirestore(localTournaments);
       }
-      
+
       // Run data cleanup if we have cloud data (only in dev mode)
       if (validTournaments.length > 0 && import.meta.env.DEV) {
         try {
@@ -121,26 +121,28 @@ export function useTournamentStorage() {
       if (!tournament.id || !tournament.name) {
         throw new Error("Invalid tournament data: missing ID or name");
       }
-      
+
       // Validate teams
       for (const team of tournament.teams) {
         if (!team.id || !team.name) {
-          throw new Error(`Invalid team data: ${team.name || 'unnamed team'}`);
+          throw new Error(`Invalid team data: ${team.name || "unnamed team"}`);
         }
       }
-      
+
       // Validate matches and goals
       for (const match of tournament.fixtures) {
         if (!match.id || !match.team1?.id || !match.team2?.id) {
-          throw new Error(`Invalid match data: ${match.id || 'unnamed match'}`);
+          throw new Error(`Invalid match data: ${match.id || "unnamed match"}`);
         }
-        
+
         // Validate goals
         for (const goal of match.goals) {
           if (!goal.id || !goal.playerId || !goal.teamId) {
             console.warn("Invalid goal found and will be skipped:", goal);
             // Remove invalid goals
-            match.goals = match.goals.filter(g => g.id && g.playerId && g.teamId);
+            match.goals = match.goals.filter(
+              (g) => g.id && g.playerId && g.teamId
+            );
           }
         }
       }

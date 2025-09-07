@@ -269,7 +269,7 @@ function App() {
                 <Badge
                   variant="outline"
                   className="text-green-600 border-green-600">
-                  ☁️ Cloud Sync Active
+                  ☁️ Cloud Data Sync
                 </Badge>
               ) : (
                 <Badge
@@ -284,26 +284,6 @@ function App() {
                 </Badge>
               )}
               {/* Debug cleanup button - only in development */}
-              {import.meta.env.DEV && useFirestore && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    const result = await cleanupData();
-                    if (result.success) {
-                      toast.success("Data cleanup completed", {
-                        description: "Corrupted data has been fixed",
-                      });
-                    } else {
-                      toast.error("Cleanup failed", {
-                        description: result.message,
-                      });
-                    }
-                  }}
-                  className="text-xs">
-                  🔧 Fix Data
-                </Button>
-              )}
             </div>
           </div>
         </div>
