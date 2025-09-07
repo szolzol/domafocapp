@@ -183,7 +183,7 @@ function LiveMatch({
       playerId: player.id,
       playerName: player.alias,
       teamId: teamId,
-      minute: Math.floor(time / 60),
+      minute: Math.floor(time / 60) + 1, // Count towards next minute (like age)
     };
 
     const updatedGoals = [...goals, newGoal];
