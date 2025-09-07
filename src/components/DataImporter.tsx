@@ -124,26 +124,71 @@ export default function DataImporter({
     try {
       if (file.name.endsWith(".csv")) {
         const text = await file.text();
-        const lines = text.split("\n");
-        const headers = lines[0]
-          .split(",")
-          .map((h) => h.trim().replace(/"/g, ""));
+        console.log("CSV file content preview:", text.substring(0, 500));
+        
+        // Handle different line endings and clean the text
+        const cleanText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+        const lines = cleanText.split("\n").filter(line => line.trim() !== "");
+        
+        console.log("Number of lines:", lines.length);
+        console.log("First line (header):", lines[0]);
+        
+        if (lines.length === 0) {
+          toast.error("The CSV file appears to be empty.");
+          return;
+        }
+        
+        // Try different delimiters
+        let delimiter = ",";
+        const firstLine = lines[0];
+        const commaCount = (firstLine.match(/,/g) || []).length;
+        const semicolonCount = (firstLine.match(/;/g) || []).length;
+        
+        if (semicolonCount > commaCount) {
+          delimiter = ";";
+        }
+        
+        console.log("Using delimiter:", delimiter);
+        
+        // Parse headers with proper CSV handling
+        const headers = firstLine
+          .split(delimiter)
+          .map((h) => h.trim().replace(/^["']|["']$/g, "")) // Remove surrounding quotes
+          .filter((h) => h !== ""); // Filter out empty headers
+          
+        console.log("Parsed headers:", headers);
+        
+        if (headers.length === 0) {
+          toast.error("No valid column headers found in the CSV file.");
+          return;
+        }
+        
+        // Parse data rows
         const data = lines
           .slice(1)
           .map((line) => {
             const values = line
-              .split(",")
-              .map((v) => v.trim().replace(/"/g, ""));
+              .split(delimiter)
+              .map((v) => v.trim().replace(/^["']|["']$/g, "")); // Remove surrounding quotes
             const row: ImportedData = {};
             headers.forEach((header, index) => {
               row[header] = values[index] || "";
             });
             return row;
           })
-          .filter((row) => Object.values(row).some((v) => v));
+          .filter((row) => Object.values(row).some((v) => v.trim() !== ""));
 
-        setColumns(headers);
+        console.log("Parsed data rows:", data.length);
+        console.log("Sample data:", data[0]);
+
+        if (data.length === 0) {
+          toast.error("No valid data rows found in the CSV file. Please check the file format.");
+          return;
+        }
+
+        setColumns(headers.filter(h => h && h.trim() !== ""));
         setImportedData(data);
+        toast.success(`Successfully loaded ${data.length} rows with ${headers.length} columns`);
         setStep("preview");
       } else {
         // For Excel files, we'll provide instructions since we can't parse them directly
@@ -152,10 +197,18 @@ export default function DataImporter({
         );
       }
     } catch (error) {
-      toast.error("Error reading file. Please check the format.");
+      console.error("CSV parsing error:", error);
+      toast.error(`Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the format.`);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to safely get mapped values, treating "none" as empty string
+  const getMappedValue = (row: ImportedData, key: string): string => {
+    const mappedKey = (mappingConfig as any)[key];
+    if (!mappedKey || mappedKey === "none") return "";
+    return row[mappedKey] || "";
   };
 
   const generateTournaments = () => {
@@ -164,17 +217,15 @@ export default function DataImporter({
     
     // Step 1: Create tournaments with enhanced settings
     importedData.forEach((row) => {
-      const tournamentName =
-        row[mappingConfig.tournamentName] || "Imported Tournament";
-      const tournamentDate =
-        row[mappingConfig.tournamentDate] ||
+      const tournamentName = getMappedValue(row, "tournamentName") || "Imported Tournament";
+      const tournamentDate = getMappedValue(row, "tournamentDate") ||
         new Date().toISOString().split("T")[0];
 
       if (!tournamentMap.has(tournamentName)) {
-        const tournamentStatus = row[mappingConfig.tournamentStatus]?.toLowerCase() || "completed";
-        const rounds = parseInt(row[mappingConfig.rounds]) || 1;
-        const teamSize = parseInt(row[mappingConfig.teamSize]) || 3;
-        const hasHalfTime = row[mappingConfig.hasHalfTime]?.toLowerCase() === "true" || false;
+        const tournamentStatus = getMappedValue(row, "tournamentStatus")?.toLowerCase() || "completed";
+        const rounds = parseInt(getMappedValue(row, "rounds")) || 1;
+        const teamSize = parseInt(getMappedValue(row, "teamSize")) || 3;
+        const hasHalfTime = getMappedValue(row, "hasHalfTime")?.toLowerCase() === "true" || false;
 
         const tournament: Tournament = {
           id: `imported_${Date.now()}_${Math.random()
@@ -201,14 +252,14 @@ export default function DataImporter({
     const playerMap = new Map<string, Player>();
 
     importedData.forEach((row) => {
-      const tournamentName =
-        row[mappingConfig.tournamentName] || "Imported Tournament";
-      const teamName = row[mappingConfig.teamName];
-      const playerName = row[mappingConfig.playerName];
-      const playerAlias = row[mappingConfig.playerAlias] || playerName;
+      const tournamentName = getMappedValue(row, "tournamentName") || "Imported Tournament";
+      const teamName = getMappedValue(row, "teamName");
+      const playerName = getMappedValue(row, "playerName");
+      const playerAlias = getMappedValue(row, "playerAlias") || playerName;
+      const playerHatValue = getMappedValue(row, "playerHat");
       const playerHat =
-        row[mappingConfig.playerHat]?.toLowerCase().includes("first") ||
-        row[mappingConfig.playerHat]?.toLowerCase().includes("strong")
+        playerHatValue?.toLowerCase().includes("first") ||
+        playerHatValue?.toLowerCase().includes("strong")
           ? "first"
           : "second";
 
@@ -260,12 +311,11 @@ export default function DataImporter({
     const matchMap = new Map<string, Match>();
     
     importedData.forEach((row) => {
-      const tournamentName =
-        row[mappingConfig.tournamentName] || "Imported Tournament";
-      const team1Name = row[mappingConfig.matchTeam1];
-      const team2Name = row[mappingConfig.matchTeam2];
-      const score1 = parseInt(row[mappingConfig.matchScore1]) || 0;
-      const score2 = parseInt(row[mappingConfig.matchScore2]) || 0;
+      const tournamentName = getMappedValue(row, "tournamentName") || "Imported Tournament";
+      const team1Name = getMappedValue(row, "matchTeam1");
+      const team2Name = getMappedValue(row, "matchTeam2");
+      const score1 = parseInt(getMappedValue(row, "matchScore1")) || 0;
+      const score2 = parseInt(getMappedValue(row, "matchScore2")) || 0;
 
       if (team1Name && team2Name && team1Name !== team2Name) {
         const matchKey = `${tournamentName}_${team1Name}_${team2Name}`;
@@ -278,11 +328,11 @@ export default function DataImporter({
           const team2 = teamMap.get(`${tournamentName}_${team2Name}`);
 
           if (tournament && team1 && team2) {
-            const matchStatus = row[mappingConfig.matchStatus]?.toLowerCase() || "completed";
-            const matchRound = parseInt(row[mappingConfig.matchRound]) || 1;
-            const matchDuration = parseInt(row[mappingConfig.matchDuration]) || 0;
-            const matchComments = row[mappingConfig.matchComments] || "";
-            const matchId = row[mappingConfig.matchId] || 
+            const matchStatus = getMappedValue(row, "matchStatus")?.toLowerCase() || "completed";
+            const matchRound = parseInt(getMappedValue(row, "matchRound")) || 1;
+            const matchDuration = parseInt(getMappedValue(row, "matchDuration")) || 0;
+            const matchComments = getMappedValue(row, "matchComments") || "";
+            const matchId = getMappedValue(row, "matchId") || 
               `match_${Date.now()}_r${matchRound}_${matchMap.size + 1}`;
 
             const match: Match = {
@@ -334,13 +384,12 @@ export default function DataImporter({
 
     // Step 4: Process goals
     importedData.forEach((row) => {
-      const tournamentName =
-        row[mappingConfig.tournamentName] || "Imported Tournament";
-      const goalPlayerName = row[mappingConfig.goalScorer];
-      const goalTeamName = row[mappingConfig.goalTeam];
-      const goalMinute = parseInt(row[mappingConfig.goalMinute]) || 0;
-      const team1Name = row[mappingConfig.matchTeam1];
-      const team2Name = row[mappingConfig.matchTeam2];
+      const tournamentName = getMappedValue(row, "tournamentName") || "Imported Tournament";
+      const goalPlayerName = getMappedValue(row, "goalScorer");
+      const goalTeamName = getMappedValue(row, "goalTeam");
+      const goalMinute = parseInt(getMappedValue(row, "goalMinute")) || 0;
+      const team1Name = getMappedValue(row, "matchTeam1");
+      const team2Name = getMappedValue(row, "matchTeam2");
 
       if (goalPlayerName && goalTeamName && goalMinute > 0 && team1Name && team2Name) {
         // Find the match this goal belongs to
@@ -570,7 +619,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -594,7 +643,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -618,7 +667,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -642,7 +691,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -666,7 +715,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -690,7 +739,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -720,7 +769,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -741,7 +790,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -762,7 +811,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -785,7 +834,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -815,7 +864,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -836,7 +885,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -857,7 +906,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -878,7 +927,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -899,7 +948,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -920,7 +969,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -941,7 +990,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -962,7 +1011,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -983,7 +1032,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -1011,7 +1060,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -1032,7 +1081,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
@@ -1053,7 +1102,7 @@ Summer Cup 2024,2024-08-15,completed,2,3,true,,,,,,Red Eagles,Blue Tigers,2,1,co
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {columns.map((col) => (
                     <SelectItem key={col} value={col}>
                       {col}
