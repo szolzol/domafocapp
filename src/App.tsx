@@ -298,7 +298,7 @@ function App() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Start a new tournament
+                Start a new friendly tournament
               </p>
             </CardContent>
           </Card>

@@ -52,7 +52,7 @@ function LiveMatch({
   );
 
   useEffect(() => {
-    let interval: number | null = null;
+    let interval: NodeJS.Timeout | null = null;
 
     if (isRunning) {
       interval = setInterval(() => {
