@@ -100,6 +100,7 @@ function App() {
     deleteTournament: deleteTournamentFromStorage,
     retryCloudConnection,
     migrateToFirestore,
+    cleanupData,
   } = useTournamentStorage();
 
   const [currentView, setCurrentView] = useState<
@@ -281,6 +282,27 @@ function App() {
                 <Badge variant="destructive" className="text-xs">
                   {error}
                 </Badge>
+              )}
+              {/* Debug cleanup button - only in development */}
+              {import.meta.env.DEV && useFirestore && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const result = await cleanupData();
+                    if (result.success) {
+                      toast.success("Data cleanup completed", {
+                        description: "Corrupted data has been fixed",
+                      });
+                    } else {
+                      toast.error("Cleanup failed", {
+                        description: result.message,
+                      });
+                    }
+                  }}
+                  className="text-xs">
+                  🔧 Fix Data
+                </Button>
               )}
             </div>
           </div>

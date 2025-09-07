@@ -84,7 +84,8 @@ export class FirestoreService {
           const goalsRef = collection(db, this.goalsCollection);
           const goalsQuery = query(
             goalsRef,
-            where("matchId", "==", matchDoc.id)
+            where("matchId", "==", matchDoc.id),
+            where("tournamentId", "==", tourDoc.id) // FIX: Add tournament filter for data integrity
           );
           const goalsSnapshot = await getDocs(goalsQuery);
 
@@ -176,6 +177,7 @@ export class FirestoreService {
           const goalRef = doc(db, this.goalsCollection, goal.id);
           const goalData = {
             matchId: match.id,
+            tournamentId: tournament.id, // FIX: Add missing tournament ID
             playerId: goal.playerId,
             playerName: goal.playerName,
             teamId: goal.teamId,
@@ -197,8 +199,18 @@ export class FirestoreService {
     try {
       const batch = writeBatch(db);
 
-      // Delete goals
+      // Delete goals - use tournament ID for better data integrity
       const goalsRef = collection(db, this.goalsCollection);
+      const goalsQuery = query(
+        goalsRef,
+        where("tournamentId", "==", tournamentId)
+      );
+      const goalsSnapshot = await getDocs(goalsQuery);
+      goalsSnapshot.docs.forEach((goalDoc) => {
+        batch.delete(goalDoc.ref);
+      });
+
+      // Also delete goals by match ID as fallback for existing data
       const matchesRef = collection(db, this.matchesCollection);
       const matchesQuery = query(
         matchesRef,
@@ -207,9 +219,9 @@ export class FirestoreService {
       const matchesSnapshot = await getDocs(matchesQuery);
 
       for (const matchDoc of matchesSnapshot.docs) {
-        const goalsQuery = query(goalsRef, where("matchId", "==", matchDoc.id));
-        const goalsSnapshot = await getDocs(goalsQuery);
-        goalsSnapshot.docs.forEach((goalDoc) => {
+        const goalsByMatchQuery = query(goalsRef, where("matchId", "==", matchDoc.id));
+        const goalsByMatchSnapshot = await getDocs(goalsByMatchQuery);
+        goalsByMatchSnapshot.docs.forEach((goalDoc) => {
           batch.delete(goalDoc.ref);
         });
       }
@@ -273,6 +285,94 @@ export class FirestoreService {
     });
 
     return unsubscribe;
+  }
+
+  // Data cleanup utility to fix corrupted data
+  async cleanupCorruptedData(): Promise<void> {
+    try {
+      console.log("Starting data cleanup...");
+      
+      // 1. Fix goals without tournament ID
+      const goalsRef = collection(db, this.goalsCollection);
+      const allGoalsSnapshot = await getDocs(goalsRef);
+      
+      const batch = writeBatch(db);
+      let fixedGoals = 0;
+      
+      for (const goalDoc of allGoalsSnapshot.docs) {
+        const goalData = goalDoc.data();
+        
+        // If goal has no tournamentId, try to find it from the match
+        if (!goalData.tournamentId && goalData.matchId) {
+          const matchRef = doc(db, this.matchesCollection, goalData.matchId);
+          const matchSnapshot = await getDoc(matchRef);
+          
+          if (matchSnapshot.exists()) {
+            const matchData = matchSnapshot.data();
+            if (matchData.tournamentId) {
+              // Update goal with tournament ID
+              batch.update(goalDoc.ref, { tournamentId: matchData.tournamentId });
+              fixedGoals++;
+            }
+          }
+        }
+      }
+      
+      if (fixedGoals > 0) {
+        await batch.commit();
+        console.log(`Fixed ${fixedGoals} goals with missing tournament IDs`);
+      }
+      
+      // 2. Remove orphaned goals (goals with non-existent match or tournament)
+      await this.removeOrphanedGoals();
+      
+      console.log("Data cleanup completed");
+    } catch (error) {
+      console.error("Error during data cleanup:", error);
+      throw error;
+    }
+  }
+
+  private async removeOrphanedGoals(): Promise<void> {
+    const goalsRef = collection(db, this.goalsCollection);
+    const allGoalsSnapshot = await getDocs(goalsRef);
+    
+    const batch = writeBatch(db);
+    let removedGoals = 0;
+    
+    for (const goalDoc of allGoalsSnapshot.docs) {
+      const goalData = goalDoc.data();
+      
+      // Check if match exists
+      if (goalData.matchId) {
+        const matchRef = doc(db, this.matchesCollection, goalData.matchId);
+        const matchSnapshot = await getDoc(matchRef);
+        
+        if (!matchSnapshot.exists()) {
+          // Match doesn't exist, remove goal
+          batch.delete(goalDoc.ref);
+          removedGoals++;
+          continue;
+        }
+      }
+      
+      // Check if tournament exists
+      if (goalData.tournamentId) {
+        const tournamentRef = doc(db, this.tournamentsCollection, goalData.tournamentId);
+        const tournamentSnapshot = await getDoc(tournamentRef);
+        
+        if (!tournamentSnapshot.exists()) {
+          // Tournament doesn't exist, remove goal
+          batch.delete(goalDoc.ref);
+          removedGoals++;
+        }
+      }
+    }
+    
+    if (removedGoals > 0) {
+      await batch.commit();
+      console.log(`Removed ${removedGoals} orphaned goals`);
+    }
   }
 }
 

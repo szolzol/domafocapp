@@ -209,14 +209,15 @@ function TournamentSetup({
     if (teams.length < 2) return [];
 
     const fixtures: Match[] = [];
-    let matchId = 1;
+    const tournamentTimestamp = Date.now();
+    let matchCounter = 1;
 
     // Generate round-robin tournament for specified number of rounds
     for (let round = 1; round <= rounds; round++) {
       for (let i = 0; i < teams.length; i++) {
         for (let j = i + 1; j < teams.length; j++) {
           fixtures.push({
-            id: matchId.toString(),
+            id: `match_${tournamentTimestamp}_r${round}_${matchCounter}`,
             team1: teams[i],
             team2: teams[j],
             score1: 0,
@@ -227,7 +228,7 @@ function TournamentSetup({
             goals: [],
             comments: "",
           });
-          matchId++;
+          matchCounter++;
         }
       }
     }
